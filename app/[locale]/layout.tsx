@@ -5,7 +5,11 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
 import { Open_Sans, Roboto_Mono, Anek_Latin } from 'next/font/google'
 import localFont from 'next/font/local'
-import {NextIntlClientProvider, useMessages} from 'next-intl';
+import {NextIntlClientProvider} from 'next-intl';
+import {getMessages, setRequestLocale} from 'next-intl/server';
+import {hasLocale} from 'next-intl';
+import {notFound} from 'next/navigation';
+import {routing} from '../../routing';
 // Font files can be colocated inside of `app`
 const dingTalkFont = localFont({
   src: 'fonts/DingTalk JinBuTi.ttf',
@@ -59,17 +63,22 @@ export const metadata: Metadata = {
   description: "PicProse is a better cover image generator tool for Medium, YouTube, BiliBili, Blog and more.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
-    params: {locale}
+    params
   }: {
     children: React.ReactNode;
-    params: {locale: string};
+    params: Promise<{locale: string}>;
   }) {
+  const {locale} = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
 
-  const messages = useMessages();
+  setRequestLocale(locale);
+  const messages = await getMessages();
   return (
-    <html lang="en" className={`${openSans.variable} ${robotoMono.variable} ${ankeLatin.variable} ${dingTalkFont.variable} ${kingsoftFont.variable} ${xinYiGuanHeiFont.variable} ${alibabaFont.variable} font-sans light`}>
+    <html lang={locale} className={`${openSans.variable} ${robotoMono.variable} ${ankeLatin.variable} ${dingTalkFont.variable} ${kingsoftFont.variable} ${xinYiGuanHeiFont.variable} ${alibabaFont.variable} font-sans light`}>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"/>
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"/>
