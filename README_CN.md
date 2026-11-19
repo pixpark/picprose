@@ -1,7 +1,7 @@
 # PicProse - 更好的封面图片生成工具
 
-[![GitHub stars](https://img.shields.io/github/stars/jaaronkot/picprose)](https://github.com/jaaronkot/picprose/stargazers)
-[![License](https://img.shields.io/github/license/jaaronkot/picprose)](https://github.com/jaaronkot/picprose/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/pixpark/picprose)](https://github.com/pixpark/picprose/stargazers)
+[![License](https://img.shields.io/github/license/pixpark/picprose)](https://github.com/pixpark/picprose/blob/main/LICENSE)
 
 ## 项目简介
 
@@ -33,7 +33,7 @@ PicProse 是一款强大的封面图片生成工具，专为博客作者、内�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/jaaronkot/picprose.git
+git clone https://github.com/pixpark/picprose.git
 
 # 进入项目目录
 cd picprose
@@ -47,11 +47,41 @@ npm run dev
 
 ### 环境变量配置
 
-创建 `.env.local` 文件并添加以下内容： 
+复制 `.env.example` 为 `.env.local` 并填入对应值：
+
+```bash
+cp .env.example .env.local
+```
 
 ```
-UNSPLASH_API_KEY = 你的Unsplash访问密钥
+UNSPLASH_API_KEY=你的Unsplash访问密钥
 NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=你的GA追踪ID
+```
+
+### 本地开发
+
+```bash
+npm run dev        # http://localhost:3000
+npm run typecheck  # tsc --noEmit
+npm run check:ui   # UI 护栏：颜色 / 圆角 / 阴影 / dark: 变体
+npm run lint
+npm run build
+npm run verify     # 类型 + 护栏 + lint + 构建 —— 提交前跑这条
+npm run test:e2e   # Playwright 浏览器回归（会自己 build + 起服务）
+```
+
+浏览器回归需要 Chromium：`npx playwright install chromium`。
+
+## 🐳 Docker 部署
+
+镜像由本仓库的 `Dockerfile` 构建，不依赖第三方镜像：
+
+```sh
+# 构建镜像
+docker build -t picprose .
+
+# 启动
+docker run -d --name picprose -e UNSPLASH_API_KEY=xxx -p 3000:3000 picprose
 ```
 
 ## 🔧 使用指南
@@ -66,7 +96,7 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=你的GA追踪ID
 
 - **前端框架**: [Next.js](https://nextjs.org/)
 - **类型系统**: [TypeScript](https://www.typescriptlang.org/)
-- **UI组件**: [NextUI](https://nextui.org/)
+- **UI组件**: [HeroUI](https://heroui.com/)
 - **样式**: [Tailwind CSS](https://tailwindcss.com/)
 - **图片源**: [Unsplash API](https://unsplash.com/developers)
 - **国际化**: [next-intl](https://next-intl-docs.vercel.app/)
@@ -78,10 +108,14 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=你的GA追踪ID
 picprose/
 ├── app/            # Next.js 应用目录
 │   ├── [locale]/   # 多语言路由
+│   ├── api/        # 服务端路由（Unsplash 代理）
 │   ├── globals.css # 全局样式
-├── public/         # 静态资源
+├── lib/            # 纯函数（可单测）
+├── config/         # 默认配置
 ├── types/          # TypeScript 类型定义
-├── config.ts       # 项目配置
+├── locales/        # i18n 文案
+├── doc/            # 项目文档与重构方案
+├── public/         # 静态资源
 └── README.md       # 项目说明
 ```
 
@@ -97,20 +131,20 @@ picprose/
 
 ## 📄 许可证
 
-本项目采用 [MIT 许可证](https://github.com/jaaronkot/picprose/blob/main/LICENSE)。
+本项目采用 [MIT 许可证](https://github.com/pixpark/picprose/blob/main/LICENSE)。
 
 ## 🙏 鸣谢
 
 - [Unsplash](https://unsplash.com/) 提供高质量图片
 - [Next.js](https://nextjs.org/) 提供强大的前端框架
-- [NextUI](https://nextui.org/) 提供精美的UI组件
+- [HeroUI](https://heroui.com/) 提供精美的UI组件
 - 所有开源项目的贡献者们
 
 ## 📬 联系我们
 
 如有任何问题或建议，欢迎通过以下方式联系我们：
 
-- GitHub Issues: [提交问题](https://github.com/jaaronkot/picprose/issues)
+- GitHub Issues: [提交问题](https://github.com/pixpark/picprose/issues)
 - Email: your.email@example.com
 
 ---

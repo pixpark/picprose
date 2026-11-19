@@ -1,27 +1,29 @@
 "use client";
 import React from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { useTranslations } from 'next-intl';
 import { usePicprose } from "./PicproseContext"; // Import usePicprose context
+import { ThemeToggle } from "./ThemeToggle";
 
 interface ImageEditorToolbarProps {
   isDragMode: boolean;
   setIsDragMode: (value: boolean) => void;
   handleResetLayout: () => void;
-  history: any[];
-  historyIndex: number;
-  setElements: (elements: any) => void;
-  setHistoryIndex: (index: number) => void;
+  /** 撤销 / 重做由 useHistory 统一管，这里只收能力位和动作。 */
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export const ImageEditorToolbar = ({
   isDragMode,
   setIsDragMode,
   handleResetLayout,
-  history,
-  historyIndex,
-  setElements,
-  setHistoryIndex
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo
 }: ImageEditorToolbarProps) => {
   // Get translation function
   const t = useTranslations('ImageEditorToolbar');
@@ -39,7 +41,7 @@ export const ImageEditorToolbar = ({
       <div className="flex flex-col items-center relative">
         {/* Drag mode hint - moved from ImageEditor */}
         {isDragMode && (
-          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white/80 text-black px-4 py-2 rounded-lg shadow-lg whitespace-nowrap">
+          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-pp-surface/80 text-pp-ink px-4 py-2 rounded-lg shadow-pop whitespace-nowrap">
             {t('drag_mode_hint', {
               elements: backgroundType === 'image' 
                 ? t('image_title_author_icon') 
@@ -48,7 +50,7 @@ export const ImageEditorToolbar = ({
           </div>
         )}
         
-        <div className="flex items-center rounded-lg bg-primary/10 backdrop-blur-sm px-3 py-2 shadow-lg">
+        <div className="flex items-center rounded-lg bg-primary/10 backdrop-blur-sm px-3 py-2 shadow-pop">
           <div className="flex items-center gap-4">
             {/* Drag mode toggle button - using pen/lock icon */}
             <div className="flex flex-col items-center">
@@ -61,7 +63,7 @@ export const ImageEditorToolbar = ({
                 size="sm"
               >
                 <svg 
-                  className="w-4 h-4 text-[#2F6EE7]" 
+                  className="w-4 h-4 text-primary" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24" 
@@ -92,17 +94,14 @@ export const ImageEditorToolbar = ({
                 color="primary"
                 variant="flat"
                 onClick={() => {
-                  if (isDragMode && historyIndex > 0) {
-                    setElements(history[historyIndex - 1]);
-                    setHistoryIndex(historyIndex - 1);
-                  }
+                  if (isDragMode) onUndo();
                 }}
-                isDisabled={!isDragMode || historyIndex <= 0}
+                isDisabled={!isDragMode || !canUndo}
                 title="Undo"
                 isIconOnly
                 size="sm"
               >
-                <svg className="w-4 h-4 text-[#2F6EE7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -125,17 +124,14 @@ export const ImageEditorToolbar = ({
                 color="primary"
                 variant="flat"
                 onClick={() => {
-                  if (isDragMode && historyIndex < history.length - 1) {
-                    setElements(history[historyIndex + 1]);
-                    setHistoryIndex(historyIndex + 1);
-                  }
+                  if (isDragMode) onRedo();
                 }}
-                isDisabled={!isDragMode || historyIndex >= history.length - 1}
+                isDisabled={!isDragMode || !canRedo}
                 title="Redo"
                 isIconOnly
                 size="sm"
               >
-                <svg className="w-4 h-4 text-[#2F6EE7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -163,7 +159,7 @@ export const ImageEditorToolbar = ({
                 size="sm"
               >
                 <svg
-                  className="w-4 h-4 text-[#2F6EE7]"
+                  className="w-4 h-4 text-primary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -177,6 +173,11 @@ export const ImageEditorToolbar = ({
                   />
                 </svg>
               </Button>
+            </div>
+
+            {/* Theme toggle */}
+            <div className="flex flex-col items-center">
+              <ThemeToggle />
             </div>
           </div>
         </div>

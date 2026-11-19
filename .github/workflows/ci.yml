@@ -1,0 +1,63 @@
+name: CI
+
+# push 到 main 和所有 PR 都跑。
+# 本地等价命令：npm run verify && npm run test:e2e
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: picprose-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: 类型 + 护栏 + Lint + 构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: UI 护栏
+        run: npm run check:ui
+
+      - name: Lint
+        run: npm run lint
+
+      - name: 构建
+        run: npm run build
+
+  e2e:
+    name: 浏览器回归
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 浏览器回归
+        run: npm run test:e2e
+        env:
+          CI: true

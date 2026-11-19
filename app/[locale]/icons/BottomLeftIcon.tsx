@@ -1,5 +1,5 @@
 import React from "react";
-export const BottomLeftIcon = (props) => (
+export const BottomLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 24 24"
     strokeLinecap="round"

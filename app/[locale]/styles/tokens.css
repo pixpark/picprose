@@ -1,0 +1,134 @@
+/**
+ * PicProse 设计 token。
+ *
+ * 数值与 fb-platform 同源（ops/src/styles/tokens.css、website/src/styles/tokens.css）——
+ * 同一个品牌，同一张色板。这里不要自己另调色；要改就三个前端一起改。
+ *
+ * 对应关系：
+ *   --pp-canvas  ↔ --ops-canvas  ↔ --home-paper   内容画布
+ *   --pp-surface ↔ --ops-surface ↔ --home-paper   卡片 / 浮层
+ *   --pp-side    ↔ --ops-side    ↔ --home-cream   侧栏
+ *   --pp-soft    ↔ --ops-soft    ↔ slate-100      hover 底
+ *   --pp-chip    ↔ --ops-chip    ↔ --home-line    选中行底
+ *   --pp-line    ↔ --ops-line    ↔ --home-line    1px 分割线
+ *   --pp-ink     ↔ --ops-ink     ↔ --home-ink     主文字
+ *   --pp-muted   ↔ --ops-muted   ↔ --home-muted   次要文字
+ *   --pp-brand   ↔ --ops-brand   ↔ --brand        品牌绿
+ *
+ * 原则（照抄官网控制台 console.css）：
+ * 「中性画布 + 发丝线 + 选中态用 chip，品牌绿只当强调色，不做大色块」。
+ *
+ * 两点跟 ops 不一样，说明一下：
+ *  1. ops 用 Tailwind v4（@theme inline），这里用 v3 —— 所以 v3 侧的
+ *     colors / borderRadius 映射写在 tailwind.config.ts，CSS 里只放变量。
+ *  2. 组件库（NextUI → HeroUI）自己有一套语义类（bg-default-100 /
+ *     text-foreground / border-default-200 …），那套跟着组件库的主题走；
+ *     本文件负责的是「组件库管不到」的那层：页面骨架、面板底色、分割线。
+ *     两套都要用，但别混着写：组件库语义类 → default-/foreground-，
+ *     本文件的变量 → pp-*。
+ *
+ * 深色模式：整套 token 翻转，组件里不写 dark: 变体。
+ * <html> 上的 .dark 类由 app/[locale]/ThemeProvider.tsx 负责。
+ */
+
+:root {
+  color-scheme: light;
+
+  /* 画布与表面 */
+  --pp-canvas: #ffffff;
+  --pp-surface: #ffffff;
+  --pp-side: #f6f7f9;
+  --pp-soft: #f1f5f9;
+  --pp-chip: #e2e8f0;
+  --pp-line: #e2e8f0;
+
+  /* 文字 */
+  --pp-ink: #0f172a;
+  --pp-muted: #475569;
+  --pp-faint: color-mix(in srgb, var(--pp-muted) 72%, var(--pp-surface));
+
+  /* 强调色：搜索框图标、选中描边。
+     之前是散落在 4 个文件里的 text-[#2F6EE7]，改色要翻遍全仓库。 */
+  --pp-accent: #2f6ee7;
+
+  /* 品牌绿：CTA、图标、状态点 */
+  --pp-brand: #10b981;
+  --pp-brand-hover: #059669;
+  --pp-brand-soft: #d1fae5;
+  --pp-brand-soft-fg: #047857;
+
+  /* 语义色 */
+  --pp-ok: #047857;
+  --pp-ok-bg: #d1fae5;
+  --pp-warn: #b45309;
+  --pp-warn-bg: #fef3c7;
+  --pp-danger: #b91c1c;
+  --pp-danger-bg: #fee2e2;
+  --pp-info: #0369a1;
+  --pp-info-bg: #e0f2fe;
+
+  /* 圆角刻度：和官网 --home-radius-* 同档 */
+  --pp-radius-sm: 6px;
+  --pp-radius-md: 8px;
+  --pp-radius-lg: 12px;
+
+  /* 尺寸刻度：和官网 --home-btn-* 同档 */
+  --pp-btn-xs-h: 1.5rem; /* 24 内联图标按钮 */
+  --pp-btn-sm-h: 2rem; /* 32 列表与次级按钮 */
+  --pp-btn-md-h: 2.5rem; /* 40 主操作与输入框 */
+  --pp-btn-lg-h: 3rem; /* 48 */
+  --pp-control-h: 2.5rem;
+
+  /* 动效刻度 */
+  --pp-dur-fast: 0.2s;
+  --pp-dur-base: 0.3s;
+
+  /* 阴影刻度：和官网 --home-shadow-* 同源。
+     card 卡片悬浮 / pop 浮层（弹窗、下拉）/ ring 内描边 */
+  --pp-shadow-card: 0 8px 14px rgb(15 23 42 / 12%);
+  --pp-shadow-pop: 0 18px 40px rgb(2 44 34 / 18%);
+  --pp-shadow-ring: inset 0 0 0 1px var(--pp-line);
+
+  /* 字号刻度：和官网 --home-fs-* 同源 */
+  --pp-text-xs: 0.75rem;
+  --pp-text-sm: 0.875rem;
+  --pp-text-base: 1rem;
+  --pp-text-lg: 1.25rem;
+  --pp-text-xl: 1.5rem;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --pp-canvas: #0f172a;
+  --pp-surface: #1e293b;
+  --pp-side: color-mix(in oklab, var(--pp-canvas) 88%, #000000);
+  --pp-soft: #1e293b;
+  --pp-chip: rgb(255 255 255 / 0.12);
+  --pp-line: rgb(255 255 255 / 0.12);
+
+  --pp-ink: #f8fafc;
+  --pp-muted: #94a3b8;
+  --pp-faint: color-mix(in srgb, var(--pp-muted) 72%, var(--pp-canvas));
+
+  /* 深色下强调色要提亮，否则深蓝糊在深底上看不见。 */
+  --pp-accent: #93c5fd;
+
+  --pp-brand: #10b981;
+  --pp-brand-hover: #059669;
+  --pp-brand-soft: rgb(16 185 129 / 0.22);
+  --pp-brand-soft-fg: #6ee7b7;
+
+  --pp-ok: #6ee7b7;
+  --pp-ok-bg: rgb(16 185 129 / 0.18);
+  --pp-warn: #fcd34d;
+  --pp-warn-bg: rgb(245 158 11 / 0.18);
+  --pp-danger: #fca5a5;
+  --pp-danger-bg: rgb(248 113 113 / 0.16);
+  --pp-info: #7dd3fc;
+  --pp-info-bg: rgb(14 165 233 / 0.18);
+
+  /* 深色下浮层阴影要更深，否则深色底上看不出层级。 */
+  --pp-shadow-card: 0 8px 14px rgb(0 0 0 / 35%);
+  --pp-shadow-pop: 0 18px 40px rgb(0 0 0 / 45%);
+}

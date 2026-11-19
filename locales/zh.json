@@ -59,7 +59,17 @@
         "layout_clean_title": "纯标题焦点",
         "layout_clean_title_desc": "仅显示中央的标题，其他元素隐藏",
         "layout_author_spotlight": "作者聚焦",
-        "layout_author_spotlight_desc": "标题在顶部，作者和图标突出显示在中心"
+        "layout_author_spotlight_desc": "标题在顶部，作者和图标突出显示在中心",
+        "svg_wave": "波浪",
+        "svg_corner": "角落",
+        "max_photos_reached": "已达到最大照片数量限制（{count}）",
+        "search_failed": "搜索照片出错：",
+        "random_failed": "获取随机照片出错：",
+        "unknown_author": "未知作者",
+        "svg_not_found": "未找到SVG效果，请确保SVG模板已正确配置",
+        "svg_unavailable": "SVG不可用",
+        "svg_template_invalid": "模板无效",
+        "svg_render_error": "渲染错误"
     },
     "RightPropertyPanel": {
         "property": "属性",
@@ -121,7 +131,16 @@
         "title_width": "标题宽度",
         "devices": "设备",
         "social_media": "社交媒体",
-        "image_position": "背景图片位置"
+        "image_position": "背景图片位置",
+        "aspect_wechat": "微信公众号",
+        "aspect_youtube_channel": "YouTube 频道",
+        "aspect_youtube_video": "YouTube 视频",
+        "aspect_facebook_desktop": "Facebook 桌面",
+        "aspect_facebook_mobile": "Facebook 移动",
+        "author_placeholder": "输入作者",
+        "select_dimensions_title": "选择尺寸",
+        "svg_wave": "波浪",
+        "svg_corner": "角落"
     },
     "ImageEditorToolbar": {
         "edit": "编辑",
@@ -131,6 +150,10 @@
         "reset": "重置",
         "drag_mode_hint": "拖动模式：可拖动{elements}",
         "image_title_author_icon": "图片、标题、作者和图标",
-        "title_author_icon": "标题、作者和图标"
+        "title_author_icon": "标题、作者和图标",
+        "theme": "主题"
+    },
+    "Export": {
+        "failed": "导出失败"
     }
 }

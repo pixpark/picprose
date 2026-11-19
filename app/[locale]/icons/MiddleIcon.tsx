@@ -1,5 +1,5 @@
 import React from "react";
-export const MiddleIcon = (props) => (
+export const MiddleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   
 <svg
   viewBox="0 0 24 24"

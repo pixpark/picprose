@@ -6,24 +6,29 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "check:ui": "node scripts/check-ui.mjs",
+    "test:e2e": "playwright test",
+    "verify": "npm run typecheck && npm run check:ui && npm run lint && npm run build"
   },
   "dependencies": {
+    "@heroui/react": "^2.8.10",
     "@next/third-parties": "15.5.23",
-    "@nextui-org/react": "2.6.11",
+    "@uiw/react-color": "^2.10.4",
     "autoprefixer": "^10.4.19",
-    "dom-to-image": "^2.6.0",
     "framer-motion": "^11.18.2",
+    "html-to-image": "^1.11.13",
     "next": "15.5.23",
     "next-intl": "4.13.6",
     "react": "19.2.8",
-    "react-color": "^2.19.3",
     "react-dom": "19.2.8",
     "react-infinite-scroll-component": "^6.1.0",
     "react-photo-album": "^2.3.1",
     "unsplash-js": "^7.0.19"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -59,7 +59,17 @@
         "layout_clean_title": "Clean Title Focus",
         "layout_clean_title_desc": "Only title visible in center, other elements hidden",
         "layout_author_spotlight": "Author Spotlight",
-        "layout_author_spotlight_desc": "Title at top, author and icon prominently in center"
+        "layout_author_spotlight_desc": "Title at top, author and icon prominently in center",
+        "svg_wave": "Wave",
+        "svg_corner": "Corner",
+        "max_photos_reached": "Reached the maximum number of photos ({count})",
+        "search_failed": "Failed to search photos: ",
+        "random_failed": "Failed to fetch random photos: ",
+        "unknown_author": "Unknown",
+        "svg_not_found": "No SVG effect found. Make sure the SVG templates are configured correctly.",
+        "svg_unavailable": "SVG unavailable",
+        "svg_template_invalid": "Invalid template",
+        "svg_render_error": "Render error"
     },
     "RightPropertyPanel": {
         "property": "Property",
@@ -121,7 +131,16 @@
         "title_width": "Title Width",
         "devices": "Devices",
         "social_media": "Social Media",
-        "image_position": "Image Position"
+        "image_position": "Image Position",
+        "aspect_wechat": "WeChat Official Account",
+        "aspect_youtube_channel": "YouTube Channel",
+        "aspect_youtube_video": "YouTube Video",
+        "aspect_facebook_desktop": "Facebook Desktop",
+        "aspect_facebook_mobile": "Facebook Mobile",
+        "author_placeholder": "Enter author",
+        "select_dimensions_title": "Select Dimensions",
+        "svg_wave": "Wave",
+        "svg_corner": "Corner"
     },
     "ImageEditorToolbar": {
         "edit": "Edit",
@@ -131,6 +150,10 @@
         "reset": "Reset",
         "drag_mode_hint": "Drag mode: You can drag {elements}",
         "image_title_author_icon": "image, title, author and icon",
-        "title_author_icon": "title, author and icon"
+        "title_author_icon": "title, author and icon",
+        "theme": "Theme"
+    },
+    "Export": {
+        "failed": "Export failed"
     }
 }

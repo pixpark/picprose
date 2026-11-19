@@ -1,86 +1,45 @@
 "use client";
 import React from "react";
-import {
-  Listbox,
-  ListboxItem,
-  Chip,
-  ScrollShadow,
-  Avatar,
-  Image,
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  Link,
-  Button,
-} from "@nextui-org/react";
 import { LeftResourcePanel } from "./LeftResourcePanel";
 import { RightPropertyPanel } from "./RightPropertyPanel";
-import { users } from "./data";
 import { ImageEditor } from "./ImageEditor";
 import { ImageEditorToolbar } from "./ImageEditorToolbar";
 import { PicproseProvider } from "./PicproseContext";
-import { ComponentToImg } from "./ComponentToImg";
-
-// Define editor state types
-type EditorElements = {
-  title: { x: number; y: number; visible: boolean };
-  author: { x: number; y: number; visible: boolean };
-  icon: { x: number; y: number; visible: boolean };
-  image: { x: number; y: number };
-};
+import { ComponentToImg, type ComponentToImgHandle, type ExportFormat } from "./ComponentToImg";
+import { useHistory } from "./useHistory";
+import { createInitialElements, type EditorElements } from "./types";
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = React.useState({});
-  
+
   // Lift all state to the top-level component
   const [isDragMode, setIsDragMode] = React.useState(false);
-  const [elements, setElements] = React.useState<EditorElements>({
-    title: { x: 0, y: 0, visible: true },
-    author: { x: 0, y: 0, visible: true },
-    icon: { x: 0, y: 0, visible: true },
-    image: { x: 0, y: 0 }
-  });
-  
-  // Initialize history with initial state
-  const initialElements = {
-    title: { x: 0, y: 0, visible: true },
-    author: { x: 0, y: 0, visible: true },
-    icon: { x: 0, y: 0, visible: true },
-    image: { x: 0, y: 0 }
-  };
-  const [history, setHistory] = React.useState<EditorElements[]>([initialElements]);
-  const [historyIndex, setHistoryIndex] = React.useState(0);
+  const [elements, setElements] = React.useState(createInitialElements);
+
+  // 撤销 / 重做。快照和索引在 hook 内部是同一份 state，不会各自漂移。
+  const initialElements = React.useMemo(createInitialElements, []);
+  const history = useHistory(initialElements, setElements);
 
   // Add reference to ComponentToImg
-  const componentToImgRef = React.useRef<{ downloadImage: (format: string) => void } | null>(null);
-  
+  const componentToImgRef = React.useRef<ComponentToImgHandle>(null);
+
   // Modify image download method
-  const handleDownload = (format: string) => {
+  const handleDownload = (format: ExportFormat) => {
     // Call ComponentToImg download method
-    if (componentToImgRef.current) {
-      componentToImgRef.current.downloadImage(format);
-    }
+    componentToImgRef.current?.downloadImage(format);
   };
 
   // Reset all editor state
   const handleResetLayout = () => {
-    const resetElements = {
-      title: { x: 0, y: 0, visible: true },
-      author: { x: 0, y: 0, visible: true },
-      icon: { x: 0, y: 0, visible: true },
-      image: { x: 0, y: 0 }
-    };
+    const resetElements = createInitialElements();
     setElements(resetElements);
-    setHistory([resetElements]);
-    setHistoryIndex(0);
+    history.reset(resetElements);
     setIsDragMode(false);
   };
 
   // Save history
   const saveHistory = (currentElements: EditorElements) => {
-    setHistory(prev => [...prev.slice(0, historyIndex + 1), {...currentElements}]);
-    setHistoryIndex(prev => prev + 1);
+    history.push(currentElements);
   };
 
   return (
@@ -90,12 +49,12 @@ export default function Home() {
         <div className="lg:w-[350px] flex-shrink-0 h-screen overflow-hidden">
           <LeftResourcePanel />
         </div>
-        
+
         {/* Middle content area - adaptive fill remaining space */}
-        <div className="flex-grow flex flex-col bg-white dark:bg-gray-900 h-screen max-h-screen overflow-hidden relative">
-          <div className="flex-1 flex justify-center items-center bg-gray-100 dark:bg-gray-800">
+        <div className="flex-grow flex flex-col bg-pp-canvas h-screen max-h-screen overflow-hidden relative">
+          <div className="flex-1 flex justify-center items-center bg-default-100">
             <ComponentToImg ref={componentToImgRef}>
-              <ImageEditor 
+              <ImageEditor
                 isDragMode={isDragMode}
                 elements={elements}
                 setElements={setElements}
@@ -104,19 +63,19 @@ export default function Home() {
               />
             </ComponentToImg>
           </div>
-          
+
           {/* Toolbar floating above */}
-          <ImageEditorToolbar 
+          <ImageEditorToolbar
             isDragMode={isDragMode}
             setIsDragMode={setIsDragMode}
             handleResetLayout={handleResetLayout}
-            history={history}
-            historyIndex={historyIndex}
-            setElements={setElements}
-            setHistoryIndex={setHistoryIndex}
+            canUndo={history.canUndo}
+            canRedo={history.canRedo}
+            onUndo={history.undo}
+            onRedo={history.redo}
           />
         </div>
-        
+
         {/* Right panel - fixed width 350px */}
         <div className="lg:w-[350px] flex-shrink-0 h-screen overflow-hidden">
           <RightPropertyPanel />

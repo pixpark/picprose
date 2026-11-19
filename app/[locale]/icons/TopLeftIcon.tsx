@@ -1,5 +1,5 @@
 import React from "react";
-export const TopLeftIcon = (props) => (
+export const TopLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
   
 <svg
   viewBox="0 0 24 24"

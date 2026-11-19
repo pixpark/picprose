@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./styles/tokens.css";
 import {Providers} from "./providers";
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
@@ -78,7 +79,7 @@ export default async function RootLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${openSans.variable} ${robotoMono.variable} ${ankeLatin.variable} ${dingTalkFont.variable} ${kingsoftFont.variable} ${xinYiGuanHeiFont.variable} ${alibabaFont.variable} font-sans light`}>
+    <html lang={locale} suppressHydrationWarning className={`${openSans.variable} ${robotoMono.variable} ${ankeLatin.variable} ${dingTalkFont.variable} ${kingsoftFont.variable} ${xinYiGuanHeiFont.variable} ${alibabaFont.variable} font-sans`}>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"/>
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"/>
