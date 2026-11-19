@@ -21,3 +21,51 @@
 .font-custom {
   font-family: var(--font-custom), sans-serif;
 }
+
+/**
+ * 滑块尺寸覆盖。
+ *
+ * HeroUI v3 默认样式是「20px 高的粗轨道 + 28×20 的蓝药丸里塞一个 24×16 的白药丸」，
+ * 跟迁移前（v2 的细轨道 + 小圆点）差得很远，看着特别粗。
+ *
+ * 这里改回细杆：6px 轨道 + 16px 的圆环滑块。
+ *
+ * 注意轨道两端那圈透明 border 不能随便改 —— react-aria 把滑块按百分比定位在
+ * 轨道的 padding box 里，而 padding box = 去掉 border 之后的宽度。
+ * 那圈 border 的宽度必须正好等于滑块半径（16 / 2 = 8px），
+ * 滑块才能卡在轨道两端而不溢出到轨道外面。
+ *
+ * 放在 @layer components 里：和 HeroUI 自己的 slider.css 同层，
+ * 但我们 import 在后面 → 同一层里后写的赢；
+ * 又因为 utilities 层优先级更高，组件上临时加的 Tailwind 工具类仍然压得住这里。
+ */
+@layer components {
+  .slider[data-orientation="horizontal"] {
+    .slider__track {
+      height: 6px;
+      border-radius: 9999px;
+      border-inline-start-width: 8px;
+      border-inline-end-width: 8px;
+    }
+
+    .slider__fill {
+      border-radius: 9999px;
+    }
+
+    .slider__thumb {
+      width: 16px;
+      height: 16px;
+      background-color: transparent;
+      border-radius: 9999px;
+    }
+
+    /* 可见的滑块本体：白底 + 品牌色描边，压在蓝色填充上也看得清。 */
+    .slider__thumb::after {
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      @apply bg-surface border-2 border-accent;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+    }
+  }
+}

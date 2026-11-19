@@ -132,5 +132,17 @@ tests/e2e/             Playwright 用例
 ## 其他
 
 - API 密钥只放服务端：`UNSPLASH_API_KEY` 不要加 `NEXT_PUBLIC_` 前缀。
+- **`.env` 和 `.env.local` 都要在 gitignore 里**（`.env` 历史上漏过，
+  一旦提交上去密钥就跟着进仓库了）。
+- **本地跑不动 Unsplash 时的排查顺序**：
+  1. `.env.local` 里有没有 `UNSPLASH_API_KEY`；
+  2. 直连 `api.unsplash.com` 通不通（`curl -I https://api.unsplash.com`）；
+  3. 通不了就走代理 —— 路由认 `HTTPS_PROXY` / `HTTP_PROXY`，
+     看到就自动开 `NODE_USE_ENV_PROXY`（Node 的 `fetch` 不认系统代理设置）。
+- **unsplash-js 遇到 4xx/5xx 不抛异常**，只返回 `{type:"error", status, errors}`。
+  路由里必须拦这一层，否则密钥失效 / 被限流时接口照样回 200，
+  前端一张图都拿不到，表现就是「一直转圈，没有任何提示」。
+- e2e 不碰真实 Unsplash：`tests/e2e/editor.spec.ts` 里用 `page.route` 拦接口喂假数据，
+  免得 CI 上因为没密钥 / 限流 / 网络不通而随机失败。
 - 提交信息写清楚「改了什么」，不要用 `update` / `fix bug`。
 - 删文件用 `mavis-trash`，别用 `rm`。

@@ -42,8 +42,69 @@ async function enterDragMode(page: Page) {
   await page.locator("button[aria-label='Enter edit mode']").click();
 }
 
+/**
+ * 一张假照片。
+ *
+ * 图片本身用内联 SVG data URI —— 不发任何外部请求，
+ * 免得 CI 上因为图片域名不通而冒出「Failed to load resource」把用例带沟里。
+ */
+const FAKE_IMAGE =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect width="400" height="600" fill="#2f6ee7"/></svg>'
+  );
+
+function fakePhoto(id: string) {
+  return {
+    id,
+    urls: { small: FAKE_IMAGE, regular: FAKE_IMAGE },
+    alt_description: `fake ${id}`,
+    width: 400,
+    height: 600,
+    user: {
+      name: "PicProse",
+      profile_image: { small: FAKE_IMAGE },
+      links: { html: "https://unsplash.com/@fake" },
+    },
+    links: { download: `https://unsplash.com/photos/${id}/download` },
+  };
+}
+
+/**
+ * 把图库接口拦下来喂假数据。
+ *
+ * e2e 不该碰真实 Unsplash：网络不通会超时、密钥失效会 401、限流会 429 ——
+ * 三种情况都会让用例变成随机失败，而且 CI 上根本没有可用密钥。
+ */
+async function mockUnsplash(page: Page) {
+  await page.route("**/api/unsplash**", async (route) => {
+    const url = route.request().url();
+    const photos = [fakePhoto("a1"), fakePhoto("a2"), fakePhoto("a3")];
+    const body = url.includes("query=")
+      ? { type: "success", status: 200, response: { total: 3, total_pages: 1, results: photos } }
+      : { type: "success", status: 200, response: photos };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+/** 让图库接口失败 —— 用来验证「出错时给提示，而不是一直转圈」。 */
+async function mockUnsplashFailure(page: Page, body: unknown, status = 503) {
+  await page.route("**/api/unsplash**", async (route) => {
+    await route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  });
+}
+
 test.describe("PicProse 主链", () => {
   test.beforeEach(async ({ page }) => {
+    await mockUnsplash(page);
     await page.goto("/en");
     await expect(page.locator("h1").first()).toBeVisible();
   });
@@ -145,5 +206,26 @@ test.describe("PicProse 主链", () => {
     await page.locator("button[aria-label^='Theme']").click();
     await page.waitForTimeout(200);
     expect(await isDark()).toBe(false);
+  });
+
+  test("图库拿不到图时给提示，不是一直转圈", async ({ page }) => {
+    // 换成「接口报错」的假响应：以前这里会一直转圈，什么都不说。
+    await mockUnsplashFailure(page, {
+      error: "UNSPLASH_API_KEY is not configured",
+      code: "missing_api_key",
+    });
+    await page.reload();
+    await expect(page.locator("h1").first()).toBeVisible();
+
+    await expect(page.getByText("Couldn't load images")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("UNSPLASH_API_KEY is not configured")).toBeVisible();
+  });
+
+  test("图库能渲染出照片", async ({ page }) => {
+    await page.reload();
+    await expect(page.locator("h1").first()).toBeVisible();
+    const thumbs = page.locator("#scrollableDiv img");
+    await expect(thumbs.first()).toBeVisible({ timeout: 15_000 });
+    expect(await thumbs.count()).toBeGreaterThan(0);
   });
 });

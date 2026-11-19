@@ -648,9 +648,34 @@ Provider、动画模型全变了，所以这一轮等于重写一遍 UI 接线�
             + devicon 运行时加载 + i18n 清零
 ✅ 阶段 4  Playwright + CI + 依赖升级（react-color / dom-to-image）
 ✅ 阶段 5  Tailwind 4 + HeroUI v3 换血（复合组件 API / 语义色 / 护栏加 v2 遗留类规则）
+✅ 修复轮  图库加载不出来（密钥 + 代理 + 错误态）+ 滑块变细 + usePhotoFeed 陈旧闭包
 ⏳ 阶段 1  src/ 分层 + zustand 单一 store + 判别联合状态   ← 唯一没做的一段
 ⏳ 收尾    提交信息规范 + 架构文档
 ```
+
+### 8.1 修复轮（2026-11-19）做了什么
+
+**图库加载不出来 —— 三层原因叠在一起**
+
+1. **本机没有密钥**。仓库里从来没有 `.env`（`.env.example` 是阶段 0 才补的），
+   密钥只在 Vercel 项目的环境变量里。已经从 Vercel 拉回本地 `.env.local`。
+   → 顺手把 `.env` 也加进 `.gitignore`（以前只挡了 `.env*.local`，
+   哪天手滑 `git add .` 就把密钥提上去了）。
+2. **`api.unsplash.com` 直连不通**。Node 的 `fetch` 不认 macOS 的「系统代理」，
+   只认 `HTTPS_PROXY` / `HTTP_PROXY`，还要 `NODE_USE_ENV_PROXY=1`。
+   → 路由里看到代理变量就自动开这个开关；`images.unsplash.com` 能直连，只有接口那头要代理。
+3. **unsplash-js 遇到 4xx/5xx 不抛异常**，只返回 `{type:"error"}`。
+   → 路由漏判这一层的话，密钥失效 / 被限流时接口照样回 200，
+   前端一张图都拿不到 —— 表现就是「一直转圈，什么提示都没有」。
+
+**另外补上的**
+
+- 失败时图库直接显示原因 + 重试按钮（以前 `usePhotoFeed` 算了 `error` 但没人渲染）。
+- `usePhotoFeed` 的陈旧闭包：重试计数永远是 0（失败会无限重试）、
+  去重集合永远是空集（同图反复出现）、搜索成功后 `isLoading` 不复位（只能看第一页）。
+- 滑块：HeroUI v3 默认轨道 20px、滑块 28×20 的药丸 → 改成 6px 轨道 + 16px 圆环滑块。
+- 左栏高度改成纯 flex 自适应，不再用 `windowHeight - 220` 这种死算（底部会空一截）。
+- e2e 改成 `page.route` 拦接口喂假数据 —— CI 上没密钥、限流、网络不通都不该让用例随机失败。
 
 **每一项都能独立验证，不需要停下来等下一步。**
 

@@ -62,6 +62,27 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=your_ga_id
 ```
 Refer: [https://unsplash.com/documentation](https://unsplash.com/documentation)
 
+#### If Unsplash cannot be reached directly
+
+`api.unsplash.com` is unreachable on some networks (e.g. mainland China) — the
+connection just times out. The API route runs on the Node side, and Node's
+`fetch` ignores the macOS/Windows system-proxy setting: it only reads
+`HTTPS_PROXY` / `HTTP_PROXY`, and only when `NODE_USE_ENV_PROXY=1` is set.
+
+The route turns that switch on by itself as soon as it sees a proxy variable,
+so all you have to do is point it at your local proxy:
+
+```bash
+# .env.local
+HTTPS_PROXY=http://127.0.0.1:7890
+```
+
+`images.unsplash.com` (the CDN that serves the photos themselves) is usually
+reachable, so only the API host needs the proxy.
+
+Without a key or without connectivity the gallery now shows the reason
+instead of spinning forever.
+
 
 ## Development
 

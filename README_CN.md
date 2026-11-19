@@ -58,6 +58,24 @@ UNSPLASH_API_KEY=你的Unsplash访问密钥
 NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=你的GA追踪ID
 ```
 
+#### Unsplash 直连不通时
+
+部分网络（比如国内）直连 `api.unsplash.com` 会一直超时。
+
+取图走的是服务端路由，而 Node 的 `fetch` **不认系统的代理设置** —— 它只看
+`HTTPS_PROXY` / `HTTP_PROXY` 这两个环境变量，还要 `NODE_USE_ENV_PROXY=1` 才生效。
+
+路由里已经写好了：只要看到代理变量就自动打开这个开关。所以本地只要指一下代理：
+
+```bash
+# .env.local
+HTTPS_PROXY=http://127.0.0.1:7890
+```
+
+（图片本身走 `images.unsplash.com`，一般能直连，只有接口那头需要代理。）
+
+密钥缺失或网络不通时，图库现在会直接把原因显示出来，不会一直转圈。
+
 ### 本地开发
 
 ```bash

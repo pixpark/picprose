@@ -66,6 +66,7 @@ export interface UsePhotoFeedResult {
   loadMore: () => void; // 往下翻一页
   reset: () => void; // 清空结果并复位分页 / 去重 / 重试状态
   resumeGallery: () => void; // 切回图库 tab 时的处理
+  retry: () => void; // 失败之后手动重来一次
   selectPhoto: (index: number) => void; // 选中第 n 张
   scrollContainerRef: RefObject<HTMLDivElement | null>; // 滚动容器
 }
@@ -105,12 +106,48 @@ export function usePhotoFeed({
   const [hasMorePhotos, setHasMorePhotos] = useState(true);
   const [hasSetInitialPhoto, setHasSetInitialPhoto] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [loadedPhotoIds, setLoadedPhotoIds] = useState<Set<string>>(new Set());
+
+  /**
+   * 下面这几个 ref 是「请求逻辑」的权威值。
+   *
+   * 之前它们只是 state，而 fetchPhotos 是在 promise 回调里跑的 —— 闭包捕获的是
+   * 发起请求那一刻的快照，于是：
+   *   · retryCount 永远是 0 → 失败会一直重试，停不下来；
+   *   · loadedPhotoIds 永远是空集 → 去重失效，同一张图反复出现；
+   *   · photos.length / hasMorePhotos 也是快照 → 上限判断、翻页判断都不准。
+   * 改成 ref 之后，回调里读到的永远是最新值；state 只负责渲染。
+   */
+  const retryCountRef = useRef(0);
+  const loadedPhotoIdsRef = useRef<Set<string>>(new Set());
+  const photoCountRef = useRef(0);
+  const hasMoreRef = useRef(true);
+  const loadingRef = useRef(false);
+  const activeRef = useRef(isActive);
+  const queryRef = useRef(query);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0);
+
+  useEffect(() => {
+    activeRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
+    queryRef.current = query;
+  }, [query]);
+
+  /** 改 loading —— state 和 ref 一起动。 */
+  const setLoading = (value: boolean) => {
+    loadingRef.current = value;
+    setIsLoading(value);
+  };
+
+  /** 改「还有没有更多」—— state 和 ref 一起动。 */
+  const setHasMore = (value: boolean) => {
+    hasMoreRef.current = value;
+    setHasMorePhotos(value);
+  };
 
   /** 通知外面选中了一张照片。 */
   const notifySelect = (index: number, photoList: FeedPhoto[]) => {
@@ -133,17 +170,18 @@ export function usePhotoFeed({
 
   /** 请求失败、或者返回格式不对时的重试。搜索重试同一页，随机再要一批。 */
   const scheduleRetry = (source: FeedSource, searchText: string, page: number) => {
-    if (retryCount < MAX_RETRY_COUNT) {
-      setRetryCount(prev => prev + 1);
+    if (retryCountRef.current < MAX_RETRY_COUNT) {
+      retryCountRef.current += 1;
       setTimeout(() => {
-        setIsLoading(false);
-        if (isActive && hasMorePhotos) {
+        setLoading(false);
+        if (activeRef.current && hasMoreRef.current) {
           fetchPhotos(source, searchText, page);
         }
       }, REQUEST_RETRY_DELAY);
     } else {
-      setHasMorePhotos(false);
-      setIsLoading(false);
+      // 重试到头了 —— 别再无限重来，让错误留在界面上。
+      setHasMore(false);
+      setLoading(false);
     }
   };
 
@@ -152,20 +190,19 @@ export function usePhotoFeed({
    * 其余（校验、去重、翻页、重试）完全共用。
    */
   const fetchPhotos = (source: FeedSource, searchText: string, page: number) => {
-    // Return directly if already loading or no more photos
-    if (isLoading || !hasMorePhotos) {
+    // 已经在拉了，或者没有更多了 —— 直接返回。
+    if (loadingRef.current || !hasMoreRef.current) {
       return;
     }
 
     // Check photo count limit
-    if (photos.length >= MAX_PHOTOS) {
+    if (photoCountRef.current >= MAX_PHOTOS) {
       console.log(t("max_photos_reached", { count: MAX_PHOTOS }));
-      setHasMorePhotos(false);
+      setHasMore(false);
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
+    setLoading(true);
 
     // Add random parameter for random requests to get different image sets
     const url = source === "search"
@@ -173,9 +210,20 @@ export function usePhotoFeed({
       : `/api/unsplash?random=true&seed=${Math.floor(Math.random() * 10000)}`;
 
     fetch(url)
-      .then(response => {
+      .then(async response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          // 服务端把原因写在 JSON 里（缺密钥就是 UNSPLASH_API_KEY is not configured），
+          // 直接把它带上来 —— 光一个 500 用户是看不懂的。
+          let detail = `HTTP ${response.status}`;
+          try {
+            const body = await response.json();
+            if (body && typeof body.error === "string" && body.error) {
+              detail = body.error;
+            }
+          } catch {
+            // 不是 JSON —— 用状态码兜底。
+          }
+          throw new Error(detail);
         }
         return response.json();
       })
@@ -190,61 +238,62 @@ export function usePhotoFeed({
 
         // Filter out already loaded image IDs
         const newPhotos = items
-          .filter(item => !loadedPhotoIds.has(item.id))
+          .filter(item => !loadedPhotoIdsRef.current.has(item.id))
           .map(toPhoto);
 
         // If no new photos after filtering and retry chances remain, try next page
         if (newPhotos.length === 0) {
-          if (retryCount < MAX_RETRY_COUNT) {
-            const newRetryCount = retryCount + 1;
-            setRetryCount(newRetryCount);
-            setIsLoading(false);
+          if (retryCountRef.current < MAX_RETRY_COUNT) {
+            retryCountRef.current += 1;
+            setLoading(false);
 
             // If retry is needed, try next page
-            if (newRetryCount < MAX_RETRY_COUNT) {
+            if (retryCountRef.current < MAX_RETRY_COUNT) {
               setTimeout(() => {
-                if (isActive && hasMorePhotos) {
+                if (activeRef.current && hasMoreRef.current) {
                   fetchPhotos(source, searchText, source === "search" ? page + 1 : page);
                 }
               }, EMPTY_PAGE_RETRY_DELAY);
             } else {
-              setHasMorePhotos(false);
-              setIsLoading(false);
+              setHasMore(false);
             }
-            return;
           } else {
-            setHasMorePhotos(false);
-            setIsLoading(false);
+            // 重试用完了 —— 这里必须 return，否则下面那段会把 hasMore 又置回 true。
+            setHasMore(false);
           }
+          return;
         }
 
         // Update loaded image ID set
-        const newIds = new Set(loadedPhotoIds);
+        const newIds = new Set(loadedPhotoIdsRef.current);
         newPhotos.forEach(photo => {
           newIds.add(photo.key);
         });
-        setLoadedPhotoIds(newIds);
+        loadedPhotoIdsRef.current = newIds;
 
         const isFullPage = newPhotos.length >= PHOTOS_PER_PAGE;
 
         // If no new photos after filtering or total less than requested, set no more photos
         if (source === "search" && !isFullPage) {
-          setHasMorePhotos(false);
+          setHasMore(false);
         } else {
           // Only reset retry count when photos are successfully obtained
-          setRetryCount(0);
+          retryCountRef.current = 0;
           // Ensure hasMorePhotos is true
-          setHasMorePhotos(true);
+          setHasMore(true);
         }
 
         // Check if total photo count reaches limit
         const updatedPhotoCount =
-          source === "search" && page === 1 ? newPhotos.length : photos.length + newPhotos.length;
+          source === "search" && page === 1
+            ? newPhotos.length
+            : photoCountRef.current + newPhotos.length;
         if (updatedPhotoCount >= MAX_PHOTOS) {
-          setHasMorePhotos(false);
+          setHasMore(false);
         }
 
         if (source === "search" && page === 1) {
+          photoCountRef.current = newPhotos.length;
           setPhotos(newPhotos);
           setTimeout(() => {
             if (scrollContainerRef.current) {
@@ -252,6 +301,7 @@ export function usePhotoFeed({
             }
           }, 0);
         } else {
+          photoCountRef.current += newPhotos.length;
           setPhotos(prevPhotos => {
             const updatedPhotos = [...prevPhotos, ...newPhotos];
 
@@ -276,10 +326,13 @@ export function usePhotoFeed({
           }
         }
 
-        // 注意：搜索路径原来就没有在这里 setIsLoading(false)，保持原样。
-        if (source === "random") {
-          setIsLoading(false);
-        }
+        // 拿到了 —— 之前的错误作废。
+        setError(null);
+
+        // 两条路径都要把 loading 放下来。
+        // 原来只在 random 分支放，搜索成功之后 isLoading 一直挂着 true ——
+        // 无限滚动的 hasMore 是 `hasMore && !loading`，于是搜完只能看第一页。
+        setLoading(false);
       })
       .catch(fetchError => {
         console.error(
@@ -294,12 +347,14 @@ export function usePhotoFeed({
 
   /** 清空结果并复位分页 / 去重 / 重试状态（当前是搜索还是随机流不变）。 */
   const reset = () => {
-    setHasMorePhotos(true);
-    setLoadedPhotoIds(new Set());
-    setRetryCount(0);
-    setIsLoading(false); // 重置加载状态
+    setHasMore(true);
+    loadedPhotoIdsRef.current = new Set();
+    retryCountRef.current = 0;
+    setLoading(false); // 重置加载状态
     setCurrentPage(1);
+    photoCountRef.current = 0;
     setPhotos([]);
+    setError(null);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
@@ -320,16 +375,30 @@ export function usePhotoFeed({
     }, SEARCH_START_DELAY);
   };
 
+  /** 失败之后手动重来一次 —— 重试计数和错误一起清掉。 */
+  const retry = () => {
+    retryCountRef.current = 0;
+    setError(null);
+    setHasMore(true);
+    setLoading(false);
+    if (shouldFetchRandomPhotos) {
+      fetchPhotos("random", queryRef.current, 1);
+    } else {
+      setCurrentPage(1);
+      fetchPhotos("search", queryRef.current, 1);
+    }
+  };
+
   /** 往下翻一页。 */
   const loadMore = () => {
-    if (isLoading || !hasMorePhotos || !isActive) {
+    if (loadingRef.current || !hasMoreRef.current || !activeRef.current) {
       return;
     }
 
     // New: Stop loading if photo count reaches limit
-    if (photos.length >= MAX_PHOTOS) {
+    if (photoCountRef.current >= MAX_PHOTOS) {
       console.log(t("max_photos_reached", { count: MAX_PHOTOS }));
-      setHasMorePhotos(false);
+      setHasMore(false);
       return;
     }
 
@@ -338,20 +407,20 @@ export function usePhotoFeed({
     }
 
     if (shouldFetchRandomPhotos) {
-      fetchPhotos("random", query, 1);
+      fetchPhotos("random", queryRef.current, 1);
     } else {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
-      fetchPhotos("search", query, nextPage);
+      fetchPhotos("search", queryRef.current, nextPage);
     }
   };
 
   /** 切回图库 tab：一张照片都没有就重新拉随机图，有就把滚动位置复位。 */
   const resumeGallery = () => {
     // If no photos, fetch random photos
-    if (photos.length === 0 && !isLoading) {
-      setHasMorePhotos(true);
-      fetchPhotos("random", query, 1);
+    if (photoCountRef.current === 0 && !loadingRef.current) {
+      setHasMore(true);
+      fetchPhotos("random", queryRef.current, 1);
     } else {
       // Reset scroll position
       setTimeout(() => {
@@ -361,19 +430,23 @@ export function usePhotoFeed({
       }, 0);
 
       // Ensure hasMorePhotos state is correct
-      if (photos.length < MAX_PHOTOS) {
-        setHasMorePhotos(true);
+      if (photoCountRef.current < MAX_PHOTOS) {
+        setHasMore(true);
       }
     }
   };
 
   // Only fetch random photos when component mounts and activeTab is "images"
+  //
+  // 依赖只有 isActive —— 之前还挂着 photos.length / isLoading，
+  // 于是「拉失败 → isLoading 变 false」会再次触发这个 effect，
+  // 变成一个自己喂自己的死循环（而且和重试定时器叠在一起，请求量翻倍）。
   useEffect(() => {
-    if (isActive && photos.length === 0 && !isLoading) {
-      fetchPhotos("random", query, 1);
-      setHasMorePhotos(true); // Ensure more can be loaded
+    if (isActive && photoCountRef.current === 0 && !loadingRef.current) {
+      fetchPhotos("random", queryRef.current, 1);
+      setHasMore(true); // Ensure more can be loaded
     }
-  }, [isActive, photos.length, isLoading]);
+  }, [isActive]);
 
   return {
     photos,
@@ -386,6 +459,7 @@ export function usePhotoFeed({
     loadMore,
     reset,
     resumeGallery,
+    retry,
     selectPhoto: (index: number) => notifySelect(index, photos),
     scrollContainerRef,
   };

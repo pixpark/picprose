@@ -46,7 +46,6 @@ export const LeftResourcePanel = () => {
 
   // Add current tab state
   const [activeTab, setActiveTab] = React.useState("images");
-  const [windowHeight, setWindowHeight] = React.useState(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSelectPhoto = (index: number, photoList: FeedPhoto[]) => {
@@ -138,20 +137,6 @@ export const LeftResourcePanel = () => {
     }
   };
 
-  React.useEffect(() => {
-    setWindowHeight(window.innerHeight);
-
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   const PicproseLogo = () => {
     return (
       <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
@@ -180,9 +165,11 @@ export const LeftResourcePanel = () => {
         </header>
       </div>
 
-      <div className="px-2 pt-2 flex-grow flex flex-col">
+      {/* min-h-0 必须有：flex 项默认 min-height:auto，内容一高就把整栏撑开，
+          底下的搜索栏会被顶出屏幕。 */}
+      <div className="px-2 pt-2 flex-grow flex flex-col min-h-0">
         <Tabs
-          className="flex flex-col flex-grow"
+          className="flex flex-col flex-grow min-h-0"
           selectedKey={activeTab}
           onSelectionChange={(key) => handleTabChange(String(key))}
         >
@@ -209,36 +196,33 @@ export const LeftResourcePanel = () => {
             </Tabs.List>
           </Tabs.ListContainer>
 
-          <Tabs.Panel id="images" className="flex-grow overflow-hidden p-0">
+          <Tabs.Panel id="images" className="flex-grow overflow-hidden p-0 flex flex-col min-h-0">
             <PhotoGallery
               photos={feed.photos}
               loading={feed.loading}
+              error={feed.error}
               hasMore={feed.hasMore}
               isActive={activeTab === "images"}
-              windowHeight={windowHeight}
               scrollContainerRef={feed.scrollContainerRef}
               onLoadMore={feed.loadMore}
+              onRetry={feed.retry}
               onSelectPhoto={feed.selectPhoto}
               t={t}
             />
           </Tabs.Panel>
-          <Tabs.Panel id="colors" className="flex-grow overflow-hidden p-0">
-            <div className="flex-grow" style={{ height: windowHeight - 220 }}>
-              <ScrollShadow className="h-full overflow-y-auto" variant="fade">
-                <ColorSection onSelectColor={handleSelectColor} t={t} />
-              </ScrollShadow>
-            </div>
+          <Tabs.Panel id="colors" className="flex-grow overflow-hidden p-0 flex flex-col min-h-0">
+            <ScrollShadow className="flex-1 min-h-0 overflow-y-auto" variant="fade">
+              <ColorSection onSelectColor={handleSelectColor} t={t} />
+            </ScrollShadow>
           </Tabs.Panel>
-          <Tabs.Panel id="patterns" className="flex-grow overflow-hidden p-0">
-            <div className="flex-grow" style={{ height: windowHeight - 220 }}>
-              <ScrollShadow className="h-full overflow-y-auto" variant="fade">
-                <SvgSection
-                  selectedSvgIndex={selectedSvgIndex}
-                  onSelectTemplate={handleSelectSvgTemplate}
-                  t={t}
-                />
-              </ScrollShadow>
-            </div>
+          <Tabs.Panel id="patterns" className="flex-grow overflow-hidden p-0 flex flex-col min-h-0">
+            <ScrollShadow className="flex-1 min-h-0 overflow-y-auto" variant="fade">
+              <SvgSection
+                selectedSvgIndex={selectedSvgIndex}
+                onSelectTemplate={handleSelectSvgTemplate}
+                t={t}
+              />
+            </ScrollShadow>
           </Tabs.Panel>
         </Tabs>
       </div>
