@@ -6,18 +6,20 @@
  * 页面会「浅色正常、深色瞎」。这种问题在浏览器里一眼能看出来，
  * 但在 code review 里极容易漏过去。
  *
- * 这里锁六件事：
+ * 这里锁七件事：
  *  1. 裸色号只允许出现在 token 文件和内容预设里（品牌图形资产除外）。
  *  2. Tailwind 调色板色类一律不许用，颜色只走 --pp-* token 或组件库语义类。
- *  3. dark: 变体一律不许用 —— 深色靠 <html>.dark 翻转整套 token，
+ *  3. HeroUI v2 遗留色类（default-100 / primary-100 / content1 …）一律不许用 ——
+ *     v3 里这些类已经不存在，写上去不报错也不生效，等于静默失效。
+ *  4. dark: 变体一律不许用 —— 深色靠 <html>.dark 翻转整套 token，
  *     组件里再写 dark: 等于把颜色钉死，深浅两套会漂。
- *  4. 圆角 / 阴影 / 图标尺寸只允许用刻度里的档位。
- *  5. 旧 token 名（--bg / --panel / --border…）不许复活。
- *  6. token 文件必须定义圆角刻度：Tailwind 的 borderRadius 映射全靠它，
+ *  5. 圆角 / 阴影 / 图标尺寸只允许用刻度里的档位。
+ *  6. 旧 token 名（--bg / --panel / --border…）不许复活。
+ *  7. token 文件必须定义圆角刻度：Tailwind 的 borderRadius 映射全靠它，
  *     少这一行所有 rounded-* 会静默失效。
  *
  * 规则集与 fb-platform/ops/scripts/check-ui.mjs 同源（同一个品牌、同一套约束），
- * 按 PicProse 的目录结构与 Tailwind v3 的接线方式做了适配。
+ * 按 PicProse 的目录结构与 Tailwind v4 的接线方式做了适配。
  *
  *   npm run check:ui
  */
@@ -54,6 +56,20 @@ const HEX_EXEMPT_DIRS = [
 /** Tailwind 调色板色类：暗色模式下不会翻转，等于把颜色写死。 */
 const PALETTE_CLASS =
   /\b(?:bg|text|border|ring|fill|stroke|from|to|via|decoration|divide|outline|shadow|accent|caret)-(?:zinc|slate|gray|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
+
+/**
+ * HeroUI v2 遗留色类：v3 已经没有了，写上去不会报错，但也不会有样式 ——
+ * 静默失效比报错更糟（颜色悄悄退回默认）。
+ *
+ * v2 → v3 的对应：
+ *   default-100 → surface-secondary   default-200 → surface-tertiary
+ *   default-300 → default             default-500/600 → muted
+ *   default-700 → foreground
+ *   primary-100 → accent-soft         primary-500/600 → accent / accent-soft-foreground
+ *   content1-4  → surface / overlay
+ */
+const V2_LEGACY_CLASS =
+  /\b(?:bg|text|border|ring|fill|stroke|from|to|via|decoration|divide|outline|shadow)-(?:default|primary|secondary|content[1-4])-\d{2,3}\b/;
 
 /** 任意值写法里的裸色号：text-[#2F6EE7] 这类。 */
 const HEX = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/;
@@ -158,6 +174,9 @@ for (const file of files) {
     if (PALETTE_CLASS.test(line)) {
       issues.push({ at, kind: "调色板色类", line: line.trim() });
     }
+    if (V2_LEGACY_CLASS.test(line)) {
+      issues.push({ at, kind: "HeroUI v2 遗留色类", line: line.trim() });
+    }
     if (!hexExempt && HEX.test(line)) {
       issues.push({ at, kind: "裸色号", line: line.trim() });
     }
@@ -187,7 +206,7 @@ for (const file of files) {
 }
 
 /**
- * 圆角刻度必须齐 —— Tailwind 的 borderRadius 映射（tailwind.config.ts）
+ * 圆角刻度必须齐 —— Tailwind 的 borderRadius 映射（tokens.css 的 @theme inline）
  * 全部指向这几个变量，少一个 rounded-* 就会退回默认值。
  */
 const tokenText = readFileSync(TOKEN_FILE, "utf8");
@@ -196,7 +215,7 @@ for (const name of ["--pp-radius-sm", "--pp-radius-md", "--pp-radius-lg"]) {
     issues.push({
       at: TOKEN_FILE,
       kind: "缺圆角刻度",
-      line: `${name} 没定义，tailwind.config.ts 的 borderRadius 映射会落空`,
+      line: `${name} 没定义，tokens.css 的 @theme inline 映射会落空`,
     });
   }
 }

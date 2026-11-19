@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Button, Select, SelectItem } from "@heroui/react";
+import { Button, Label, ListBox, Select } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { fontOptions } from "./fontOptions";
 import type { UpdateProperty } from "./types";
@@ -12,6 +12,9 @@ interface FontSectionProps {
 
 /**
  * 字体设置：字体下拉 + 上传自定义字体。
+ *
+ * HeroUI v3 的 Select 是复合结构（Trigger / Value / Indicator / Popover），
+ * 选项用 ListBox.Item，且用 id 而不是 key 标识选项。
  */
 export const FontSection = ({ updateProperty }: FontSectionProps) => {
   const t = useTranslations("RightPropertyPanel");
@@ -39,8 +42,9 @@ export const FontSection = ({ updateProperty }: FontSectionProps) => {
     }
   };
 
-  const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateProperty("font", e.target.value);
+  const handleFontChange = (key: React.Key | null) => {
+    if (key == null) return;
+    updateProperty("font", String(key));
   };
 
   const handleFontButtonClick = () => {
@@ -53,16 +57,29 @@ export const FontSection = ({ updateProperty }: FontSectionProps) => {
     <div className="flex w-full py-2 items-end gap-2">
       <div className="flex-grow">
         <Select
-          label={t("font")}
           className="w-full"
+          defaultValue="font-anke"
           onChange={handleFontChange}
-          defaultSelectedKeys={["font-anke"]}
         >
-          {fontOptions.map((font) => (
-            <SelectItem key={font.value}>
-              {font.label}
-            </SelectItem>
-          ))}
+          <Label>{t("font")}</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {fontOptions.map((font) => (
+                <ListBox.Item
+                  key={font.value}
+                  id={font.value}
+                  textValue={font.label}
+                >
+                  {font.label}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
         </Select>
       </div>
       <div>
@@ -74,13 +91,12 @@ export const FontSection = ({ updateProperty }: FontSectionProps) => {
         />
         <Button
           isIconOnly
-          color="primary"
-          variant="flat"
+          variant="secondary"
           size="lg"
-          onClick={handleFontButtonClick}
+          onPress={handleFontButtonClick}
         >
           <svg
-            className="w-5 h-5 text-primary"
+            className="w-5 h-5"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="24"

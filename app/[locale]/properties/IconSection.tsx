@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
-import { Button, Select, SelectItem } from "@heroui/react";
-import type { Selection } from "@heroui/react";
+import { Button, Label, ListBox, Select } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { useDevicons } from "@/lib/devicons";
 import type { UpdateProperty } from "./types";
@@ -11,8 +10,14 @@ interface IconSectionProps {
   updateProperty: UpdateProperty;
 }
 
+/** 默认选中的图标（HeroUI v2 里是 defaultSelectedKeys={["aarch64-plain"]}）。 */
+const DEFAULT_DEVICON = "aarch64-plain";
+
 /**
  * 图标设置：devicon 下拉 + 上传图片图标。
+ *
+ * HeroUI v3 的 Select 是复合结构（Trigger / Value / Indicator / Popover），
+ * 选项用 ListBox.Item，且用 id 而不是 key 标识选项。
  */
 export const IconSection = ({ updateProperty }: IconSectionProps) => {
   const t = useTranslations("RightPropertyPanel");
@@ -20,10 +25,20 @@ export const IconSection = ({ updateProperty }: IconSectionProps) => {
   const iconInputRef = React.useRef<HTMLInputElement>(null);
 
   // 图标表是运行时按需拉的（见 lib/devicons.ts）。
-  // 数据到达前 Select 的 items 是空的，直接挂载拿不到默认选中项 ——
+  // 数据到达前 Select 的选项是空的，直接挂载拿不到默认选中项 ——
   // 数据到了就整块重挂一次，行为跟之前静态 import 时一致。
   const deviconList = useDevicons();
   const deviconSelectKey = deviconList.length ? "devicons-ready" : "devicons-loading";
+
+  const [selectedDevicon, setSelectedDevicon] = React.useState(DEFAULT_DEVICON);
+
+  /** 图标 id 的统一算法：名字 + 字体版本。 */
+  const deviconId = (name: string, fontVersion: string) => `${name}-${fontVersion}`;
+
+  /** 当前选中的图标条目。 */
+  const selectedEntry = deviconList.find(
+    (item) => deviconId(item.name, item.versions.font[0]) === selectedDevicon
+  );
 
   const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files?.[0]) {
@@ -33,12 +48,11 @@ export const IconSection = ({ updateProperty }: IconSectionProps) => {
     }
   };
 
-  const handleDeviconChange = (selection: Selection) => {
-    let icon = "";
-    if (selection && typeof selection !== "string" && selection.size > 0) {
-      icon = Array.from(selection)[0].toString();
-    }
-    updateProperty("devicon", icon);
+  const handleDeviconChange = (key: React.Key | null) => {
+    if (key == null) return;
+    const id = String(key);
+    setSelectedDevicon(id);
+    updateProperty("devicon", id);
   };
 
   const handleIconButtonClick = () => {
@@ -52,36 +66,48 @@ export const IconSection = ({ updateProperty }: IconSectionProps) => {
       <div className="flex-grow">
         <Select
           key={deviconSelectKey}
-          label={t("icon")}
           className="w-full"
-          items={deviconList}
-          isLoading={deviconList.length === 0}
-          onSelectionChange={handleDeviconChange}
-          defaultSelectedKeys={["aarch64-plain"]}
-          renderValue={(items) => {
-            return items.map((item) => (
-              <div key={item.key} className="flex gap-2 items-center">
-                <i
-                  className={`devicon-${String(item.key)} text-foreground dev-icon text-base`}
-                ></i>
-                <div className="flex flex-col">{item.data?.name}</div>
-              </div>
-            ));
-          }}
+          // 图标表还没到时先不选 —— 否则 RAC 会去找一个不存在的选项。
+          value={deviconList.length ? selectedDevicon : null}
+          onChange={handleDeviconChange}
         >
-          {(item) => (
-            <SelectItem
-              key={item.name + "-" + item.versions.font[0]}
-              textValue={item.name}
-            >
-              <div className="flex gap-2 items-center">
-                <i
-                  className={`devicon-${item.name}-${item.versions.font[0]} text-foreground dev-icon text-2xl`}
-                ></i>
-                <div className="flex flex-col">{item.name}</div>
-              </div>
-            </SelectItem>
-          )}
+          <Label>{t("icon")}</Label>
+          <Select.Trigger>
+            <Select.Value>
+              {({ defaultChildren, isPlaceholder }) => {
+                if (isPlaceholder || !selectedEntry) {
+                  return defaultChildren;
+                }
+                return (
+                  <div className="flex gap-2 items-center">
+                    <i
+                      className={`devicon-${selectedEntry.name}-${selectedEntry.versions.font[0]} text-foreground dev-icon text-base`}
+                    ></i>
+                    <div className="flex flex-col">{selectedEntry.name}</div>
+                  </div>
+                );
+              }}
+            </Select.Value>
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {deviconList.map((item) => {
+                const id = deviconId(item.name, item.versions.font[0]);
+                return (
+                  <ListBox.Item key={id} id={id} textValue={item.name}>
+                    <div className="flex gap-2 items-center">
+                      <i
+                        className={`devicon-${item.name}-${item.versions.font[0]} text-foreground dev-icon text-2xl`}
+                      ></i>
+                      <div className="flex flex-col">{item.name}</div>
+                    </div>
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                );
+              })}
+            </ListBox>
+          </Select.Popover>
         </Select>
       </div>
       <div>
@@ -93,13 +119,12 @@ export const IconSection = ({ updateProperty }: IconSectionProps) => {
         />
         <Button
           isIconOnly
-          color="primary"
-          variant="flat"
+          variant="secondary"
           size="lg"
-          onClick={handleIconButtonClick}
+          onPress={handleIconButtonClick}
         >
           <svg
-            className="w-5 h-5 text-primary"
+            className="w-5 h-5"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="24"

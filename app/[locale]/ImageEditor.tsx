@@ -207,7 +207,7 @@ export const ImageEditor = ({
               href={imageInfo.profile}
               target="_blank"
               rel="noreferrer"
-              className="cursor-pointer flex items-center bg-default-200 rounded-full text-sm"
+              className="cursor-pointer flex items-center bg-surface-tertiary rounded-full text-sm"
             >
               <img
                 src={imageInfo.avatar}

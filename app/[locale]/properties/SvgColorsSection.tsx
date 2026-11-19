@@ -1,11 +1,6 @@
 "use client";
 import React from "react";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from "@heroui/react";
+import { Popover } from "@heroui/react";
 import { Chrome } from "@uiw/react-color";
 import type { ColorResult } from "@uiw/react-color";
 import { useTranslations } from "next-intl";
@@ -28,8 +23,6 @@ interface ColorFieldProps {
   color: string | undefined;
   /** 右侧显示的色号文字。 */
   text: string;
-  /** 下拉项的 key。 */
-  pickerKey: string;
   /** 选定颜色。 */
   onChange: (hex: string) => void;
   /**
@@ -41,32 +34,43 @@ interface ColorFieldProps {
   wrap?: boolean;
 }
 
-const ColorField = ({ label, color, text, pickerKey, onChange, wrap = true }: ColorFieldProps) => {
+const ColorField = ({ label, color, text, onChange, wrap = true }: ColorFieldProps) => {
+  const [isPickerOpen, setIsPickerOpen] = React.useState(false);
+
   const field = (
     <>
-      <div className="text-default-600 mb-2">{label}</div>
+      <div className="text-muted mb-2">{label}</div>
       <div className="relative">
-        <Dropdown>
-          <DropdownTrigger>
+        {/* 取色器用 Popover，不用 Dropdown ——
+            菜单项里塞一个可交互的取色板本身就是误用（点色块会顺手把菜单点了）。 */}
+        <Popover
+          isOpen={isPickerOpen}
+          onOpenChange={setIsPickerOpen}
+        >
+          <Popover.Trigger>
             <div className="flex items-center cursor-pointer">
               <div
-                className="w-10 h-10 rounded-lg border-2 border-default-300"
+                className="w-10 h-10 rounded-lg border-2 border-border"
                 style={{ backgroundColor: color }}
               ></div>
-              <div className="flex-1 ml-2 bg-default-100 text-foreground rounded-lg px-3 py-2">
+              <div className="flex-1 ml-2 bg-surface-secondary text-foreground rounded-lg px-3 py-2">
                 {text}
               </div>
             </div>
-          </DropdownTrigger>
-          <DropdownMenu>
-            <DropdownItem key={pickerKey}>
+          </Popover.Trigger>
+          <Popover.Content>
+            <Popover.Dialog>
               <Chrome
                 color={color}
-                onChange={(color: ColorResult) => onChange(color.hex)}
+                onChange={(next: ColorResult) => {
+                  onChange(next.hex);
+                  // 选完就收起浮层 —— v2 里点色块会顺带关掉下拉，v3 的 Popover 不会自动关。
+                  setIsPickerOpen(false);
+                }}
               />
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+            </Popover.Dialog>
+          </Popover.Content>
+        </Popover>
       </div>
     </>
   );
@@ -103,14 +107,12 @@ export const SvgColorsSection = ({
           label={t("start_color")}
           color={params?.color1 || currentSvg.defaultParams.color1}
           text={(params?.color1 || currentSvg.defaultParams.color1 || "").toUpperCase()}
-          pickerKey="svg-color1"
           onChange={(hex) => onParamChange('color1', hex)}
         />
         <ColorField
           label={t("end_color")}
           color={params?.color2 || currentSvg.defaultParams.color2}
           text={(params?.color2 || currentSvg.defaultParams.color2 || "").toUpperCase()}
-          pickerKey="svg-color2"
           onChange={(hex) => onParamChange('color2', hex)}
         />
       </div>
@@ -122,7 +124,6 @@ export const SvgColorsSection = ({
             label={t("backgroundColor")}
             color={params?.backgroundColor || currentSvg.defaultParams.backgroundColor || ''}
             text={(params?.backgroundColor || currentSvg.defaultParams.backgroundColor || '').toUpperCase()}
-            pickerKey="svg-background-color"
             onChange={(hex) => onParamChange('backgroundColor', hex)}
             wrap={false}
           />
@@ -132,10 +133,10 @@ export const SvgColorsSection = ({
 
       {/* 背景选项 */}
       <div>
-        <div className="text-default-600 mb-2">{t("background")}</div>
+        <div className="text-muted mb-2">{t("background")}</div>
         <div className="grid grid-cols-2 gap-2">
           <button
-            className={`p-3 flex items-center justify-center ${params?.useGradientBg || !params?.hasOwnProperty('useGradientBg') ? 'bg-primary-100 text-primary-600' : 'bg-default-100'} rounded-lg`}
+            className={`p-3 flex items-center justify-center ${params?.useGradientBg || !params?.hasOwnProperty('useGradientBg') ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary'} rounded-lg`}
             onClick={() => onParamChange('useGradientBg', true)}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -150,7 +151,7 @@ export const SvgColorsSection = ({
             <span className="ml-2">{t("gradient")}</span>
           </button>
           <button
-            className={`p-3 flex items-center justify-center ${params?.useGradientBg === false ? 'bg-primary-100 text-primary-600' : 'bg-default-100'} rounded-lg`}
+            className={`p-3 flex items-center justify-center ${params?.useGradientBg === false ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary'} rounded-lg`}
             onClick={() => {
               onParamChange('useGradientBg', false);
               // 如果背景色未设置，给一个默认值

@@ -1,5 +1,5 @@
 "use client";
-import { Divider, Input, Slider, Textarea } from "@heroui/react";
+import { Input, Label, Separator, Slider, TextArea, TextField } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import type { PropertyInfo, UpdateProperty } from "./types";
 
@@ -12,62 +12,92 @@ interface TextSectionProps {
 
 /**
  * 文字设置：标题、标题字号、标题宽度、作者、作者字号。
+ *
+ * HeroUI v3 的 Slider 是复合结构：Label + Output + Track(Fill/Thumb)，
+ * 没有 v2 的 label / size 属性了。
  */
 export const TextSection = ({ propertyInfo, updateProperty }: TextSectionProps) => {
   const t = useTranslations("RightPropertyPanel");
 
+  /** 滑块回传 number | number[]，这里统一取第一个值。 */
+  const firstValue = (value: number | number[]) =>
+    typeof value === "number" ? value : value[0];
+
   return (
     <>
-      <Textarea
-        label={t("title")}
-        placeholder={t("title_place")}
-        className="w-full py-2"
-        value={propertyInfo.title}
-        onValueChange={(value) => updateProperty("title", value)}
-      />
+      <TextField className="w-full">
+        <Label>{t("title")}</Label>
+        <TextArea
+          placeholder={t("title_place")}
+          value={propertyInfo.title}
+          onChange={(e) => updateProperty("title", e.target.value)}
+        />
+      </TextField>
 
       <Slider
-        label={t("font_size")}
         value={Number(propertyInfo.fontSizeValue)}
-        onChange={(value) => updateProperty("fontSizeValue", typeof value === "number" ? value.toString() : value[0].toString())}
-        size="sm"
+        onChange={(value) =>
+          updateProperty("fontSizeValue", firstValue(value).toString())
+        }
         step={1}
         minValue={10}
         maxValue={100}
         className="w-full my-2"
-      />
+      >
+        <Label>{t("font_size")}</Label>
+        <Slider.Output />
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
 
       <Slider
-        label={t("title_width")}
         value={Number(propertyInfo.titleWidthValue || 100)}
-        onChange={(value) => updateProperty("titleWidthValue", typeof value === "number" ? value.toString() : value[0].toString())}
-        size="sm"
+        onChange={(value) =>
+          updateProperty("titleWidthValue", firstValue(value).toString())
+        }
         step={5}
         minValue={50}
         maxValue={150}
         className="w-full my-2"
-      />
+      >
+        <Label>{t("title_width")}</Label>
+        <Slider.Output />
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
 
-      <Divider />
-      <Input
-        label={t("author")}
-        type="search"
-        className="w-full py-2"
-        placeholder={t("author_placeholder")}
-        value={propertyInfo.author}
-        onValueChange={(value) => updateProperty("author", value)}
-      />
+      <Separator />
+      <TextField className="w-full">
+        <Label>{t("author")}</Label>
+        <Input
+          type="search"
+          placeholder={t("author_placeholder")}
+          value={propertyInfo.author}
+          onChange={(e) => updateProperty("author", e.target.value)}
+        />
+      </TextField>
 
       <Slider
-        label={t("author_size")}
         value={Number(propertyInfo.authorFontSizeValue)}
-        onChange={(value) => updateProperty("authorFontSizeValue", typeof value === "number" ? value.toString() : value[0].toString())}
-        size="sm"
+        onChange={(value) =>
+          updateProperty("authorFontSizeValue", firstValue(value).toString())
+        }
         step={1}
         minValue={10}
         maxValue={100}
         className="w-full my-2"
-      />
+      >
+        <Label>{t("author_size")}</Label>
+        <Slider.Output />
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
     </>
   );
 };

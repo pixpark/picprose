@@ -33,15 +33,13 @@ export const ThemeToggle = () => {
 
   return (
     <Button
-      color="primary"
-      variant="flat"
-      onClick={next}
+      variant="secondary"
+      onPress={next}
       isIconOnly
       size="sm"
-      title={`${t("theme")}: ${LABEL[mode]}`}
       aria-label={`${t("theme")}: ${LABEL[mode]}`}
     >
-      <span className="text-sm leading-none text-primary">{LABEL[mode].slice(0, 1)}</span>
+      <span className="text-sm leading-none">{LABEL[mode].slice(0, 1)}</span>
     </Button>
   );
 };

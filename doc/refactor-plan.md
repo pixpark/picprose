@@ -3,8 +3,8 @@
 > 分析日期：2026-11-19 · 分析对象：`main` 分支 @ `58fdde0`
 > 结论先行：**不要重写，做分阶段重构。** 理由见 §2。
 >
-> **进度（2026-11-19）**：阶段 0 / 2 / 3 / 4 已完成，阶段 1（状态模型换血）留到下一轮。
-> 每一阶段的验收结果都写在对应小节里。
+> **进度（2026-11-19）**：阶段 0 / 2 / 3 / 4 已完成；同日追加 **阶段 5：Tailwind 4 + HeroUI v3 换血**（已完成）。
+> 阶段 1（状态模型换血）留到下一轮。每一阶段的验收结果都写在对应小节里。
 
 ---
 
@@ -13,7 +13,7 @@
 | 维度 | 现状 |
 |---|---|
 | 规模 | 115 个文件，5532 行（去掉 `package-lock`）；TS/TSX 源码约 4100 行 |
-| 栈 | Next.js 15.5.23 (App Router) · React 19.2.8 · Tailwind 3.4 · @nextui-org/react 2.6.11 |
+| 栈 | Next.js 15.5.23 (App Router) · React 19.2.8 · Tailwind 4.3 · @heroui/react 3.2.7 |
 | 历史 | 47 个提交，2024-03-15 → 2026-08-11 |
 | 测试 | **无** |
 | CI | **无**（没有 `.github/`） |
@@ -252,9 +252,9 @@ locales 有 128 个键、3 个分组，但以下全是硬编码中文（`en` 语
 
 | 包 | 状态 |
 |---|---|
-| `@nextui-org/react` 2.6.11 | 2024 年已改名 **`@heroui/react`**，NextUI 停止维护 |
-| `react-color` | 2020 年后无更新，React 19 下有 peer 警告 |
-| `dom-to-image` | 2019 年后无更新；它把 DOM 转成 SVG data URI，外链字体/图片经常丢 |
+| `@nextui-org/react` 2.6.11 | 2024 年已改名 **`@heroui/react`**，NextUI 停止维护；**阶段 5 已升到 v3.2.7** |
+| `react-color` | 2020 年后无更新，React 19 下有 peer 警告　→ 阶段 4 已换 `@uiw/react-color` |
+| `dom-to-image` | 2019 年后无更新；它把 DOM 转成 SVG data URI，外链字体/图片经常丢　→ 阶段 4 已换 `html-to-image` |
 | `react-photo-album` / `react-infinite-scroll-component` | 引了但基本没用（自己写的滚动） |
 
 #### P3-3 ✅ 字体授权　→　**已确认（2026-11-19）**
@@ -502,7 +502,7 @@ export interface SvgTemplate<P> {
 
 - [x] Playwright 端到端：7 条用例，覆盖选比例 → 调浓度 → 拖标题 → 导出 PNG 一整条主链，外加「英文界面不出现中文」「主题切换翻转 `.dark`」两条回归
 - [x] GitHub Actions：`.github/workflows/ci.yml`，两个 job（verify / e2e），本地等价 `npm run verify && npm run test:e2e`
-- [x] 依赖升级：`@nextui-org/react` → `@heroui/react@2.8.10`（**不是 v3** —— v3 要 Tailwind 4，本项目还在 v3）、`react-color` → `@uiw/react-color`、`dom-to-image` → `html-to-image`
+- [x] 依赖升级：`@nextui-org/react` → `@heroui/react@2.8.10`（当时只能停在 v2 —— v3 要 Tailwind 4，本项目还在 Tailwind 3；**阶段 5 已补上 v3**）、`react-color` → `@uiw/react-color`、`dom-to-image` → `html-to-image`
 - [x] Dockerfile 改成多阶段生产构建（原来跑的是 `npm run dev`）
 - [x] `next.config.mjs` 加 `outputFileTracingRoot`（否则 Next 会把 `/Users/admin/package-lock.json` 误当项目根）
 - [x] README / README_CN / AGENTS.md 同步新栈与新命令
@@ -522,14 +522,93 @@ export interface SvgTemplate<P> {
 **依赖升级踩到的坑**
 
 - HeroUI v3 的 peer 是 `tailwindcss >= 4`，装 v3 会把 Tailwind v4 一起拖进来。
-  本项目 Tailwind 是 3.4，所以用 **HeroUI v2.8.10**（插件本身用的还是 v3 的 API）。
+  阶段 4 时本项目 Tailwind 是 3.4，所以只能停在 **HeroUI v2.8.10**；
+  阶段 5 把 Tailwind 一起升到 4，这层限制才解除（见阶段 5）。
 - HeroUI v2 的插件**类型**是按 Tailwind v4 写的，跟本项目的 Tailwind v3 类型对不上，
   `tailwind.config.ts` 里有一处 `as unknown as PluginCreator` 的类型放行。
+  → **阶段 5 连同 `tailwind.config.ts` 一起删掉了**，这处放行随之消失。
 - `SelectItem` 的 `value` prop 在 HeroUI 里被移除了（item 的 key 就是 value），
   字体下拉那个 `value={font.value}` 直接删掉 —— key 本来就等于 value。
 - `@uiw/react-color` v2 没有 Twitter 版取色器，`TwitterPicker` 换成了 `Chrome`
   （饱和度方块 + 色相条 + 色号输入），`CirclePicker` 换成 `Circle`（用法几乎一样）。
   两个库的回调名也不同：`onChangeComplete` → `onChange`。
+
+### 阶段 5：UI 栈换血（Tailwind 4 + HeroUI v3）　✅ **已完成 2026-11-19**
+
+**目标：把停在 HeroUI v2 的组件库一次换到当前最新版，顺带把 Tailwind 3 迁到 4。**
+
+阶段 4 里 HeroUI 只升到 v2.8.10，原因是 v3 的 peer 是 `tailwindcss >= 4`，
+而本项目还在 Tailwind 3 —— 这层限制只能靠「两个一起升」解开。
+HeroUI v3 是照着 React Aria 重写的，不是小版本升级：组件 API、语义色、
+Provider、动画模型全变了，所以这一轮等于重写一遍 UI 接线。
+
+**构建层**
+
+- [x] `postcss.config.js` → `postcss.config.mjs`，插件换成 `@tailwindcss/postcss`
+      （Tailwind v4 自带前缀处理，`autoprefixer` / 显式 `postcss` 依赖一并删掉）
+- [x] `tailwind.config.ts` **删除**：v4 是 CSS 优先，配置写进 `@theme` / `@custom-variant`
+- [x] `globals.css`：`@tailwind base/components/utilities` → `@import "tailwindcss"` +
+      `@import "@heroui/styles"`（顺序不能反）+ `@custom-variant dark (&:where(.dark, .dark *))`
+- [x] `tokens.css`：变量 → 工具类的映射从 JS 配置搬进 `@theme inline`
+      （**必须 inline** —— 非 inline 会多一层 `:root`，深色模式翻不动）
+- [x] `next/font` 注入的变量改名 `--pp-font-*`，避免和 `@theme` 的 `--font-*` 撞名
+- [x] 重建 `package-lock.json`：旧的锁文件里塞着 v2 的几十个分包依赖（每个组件一个包，
+      还各自嵌套了一份 tailwindcss），跟 v3 已经完全不兼容
+
+**组件层（v2 → v3 的实际改动）**
+
+- [x] `HeroUIProvider` 删除（v3 不需要 Provider）；`framer-motion` 依赖一并删掉
+- [x] `Navbar` / `NavbarBrand` / `NavbarContent` / `NavbarItem` → 原生 `header` / `footer`
+- [x] `Divider` → `Separator`；`CheckboxIcon` → 内联 SVG 对勾
+- [x] `Select` 改成复合结构（`Select.Trigger` / `Select.Value` / `Select.Indicator` /
+      `Select.Popover` + `ListBox.Item`），选项从 `key` 改成 `id`
+- [x] `Slider` 改成复合结构（`Label` + `Slider.Output` + `Track`/`Fill`/`Thumb`），
+      `label` / `size` 属性没有了
+- [x] `Tabs` 改成复合结构（`Tabs.List` / `Tabs.Tab` / `Tabs.Panel`），`Tab title=` 没有了
+- [x] `Input` / `TextArea` 不再自带 `label`，改用 `TextField` + `Label` 包一层
+- [x] 取色器从 `Dropdown` 的菜单项改成 `Popover`（菜单项里塞可交互的取色板，
+      点色块会顺手把菜单点了 —— 这是 v2 就有的误用）
+- [x] 事件 `onClick` → `onPress`（React Aria）
+- [x] 图标按钮的 `title` → `aria-label`：React Aria 的 `filterDOMProps` 会把 `title` 丢掉
+- [x] 语义色全量替换（87 处）：`bg-default-100` → `bg-surface-secondary`、
+      `bg-default-200` → `bg-surface-tertiary`、`text-default-600` → `text-muted`、
+      `bg-primary-100` → `bg-accent-soft`、`text-primary-600` → `text-accent-soft-foreground` ……
+      v3 的语义色是扁平的，没有 v2 那种数字档
+- [x] 按钮语义变体：`color="primary" variant="flat"` → `variant="secondary"`、
+      `variant="bordered"` → `variant="outline"`、`variant="light"` → `variant="ghost"`；
+      真正的主操作（导出三连）用 `variant="primary"`
+
+**护栏**
+
+- [x] `scripts/check-ui.mjs` 加一条「HeroUI v2 遗留色类」规则 ——
+      v3 里 `bg-default-100` 这类类已经不存在，写上去**不报错也不生效**，比报错更危险
+- [x] 护栏的圆角刻度检查跟着改口径：映射现在在 `tokens.css` 的 `@theme inline` 里，
+      不在 `tailwind.config.ts` 了
+
+**验收**
+
+| 项 | 结果 |
+|---|---|
+| `npm run verify` | ✅ exit 0（typecheck 0 错 + 护栏过 52 文件 + lint 0 错 + build 通过） |
+| `npm run test:e2e` | ✅ 7/7 通过（e2e 里「进入拖拽模式」的选择器从 `title=` 改成 `aria-label=`） |
+| 页面 chunk JS | 202 kB → **147 kB**（−27%，v3 的 tree-shaking 比 v2 的分包干净） |
+| First Load JS | 320 kB → **262 kB**（−18%） |
+| 深浅两套截图 | ✅ 正常；三个 tab、下拉（473 个 devicon）、取色器浮层、尺寸面板都逐个点过 |
+| console 报错 | ✅ 0 条 |
+
+**踩到的坑**
+
+- `@heroui/styles` 内部自己也 `@import "tailwindcss"` —— 和外层重复导入**不会**重复展开，
+  Tailwind v4 按文件去重（实测产物里 tailwind banner 只有 1 处）
+- 组件库的 `@theme inline` 和本项目的 `@theme inline` 会撞同名变量（`--radius-lg` 等）。
+  靠**导入顺序**决定谁赢：`tokens.css` 排在 `@heroui/styles` 后面，所以品牌刻度覆盖组件库默认刻度
+- `Input` 的禁用属性是原生 `disabled`，但 `Button` 是 `isDisabled` —— 两个不一样
+- `Button` 的 `title` 会被 React Aria 丢掉（类型上也没有），图标按钮只能给 `aria-label`
+- `Select` 的 `onChange` 签名是 `(value: Key | null) => void`，不是 v2 的 `Selection`
+- `Select` 的 `isLoading` 在 v3 里没有了；`isPending` 只存在于 `Button`，`Select` 不支持
+- `Next.js` 的 `optimizePackageImports` 对 `@heroui/react` **无效**（它认目录式 barrel，
+  不认 exports map），所以体积没降；v3 本身 tree-shaking 已经够干净
+
 
 ---
 
@@ -567,7 +646,8 @@ export interface SvgTemplate<P> {
 ✅ 阶段 2  抄 fb-platform 的 tokens + check-ui 护栏 + 深色模式
 ✅ 阶段 3  拆三个大面板 + 抽 usePhotoFeed / useHistory / useElementDrag
             + devicon 运行时加载 + i18n 清零
-✅ 阶段 4  Playwright + CI + 依赖升级（HeroUI / react-color / dom-to-image）
+✅ 阶段 4  Playwright + CI + 依赖升级（react-color / dom-to-image）
+✅ 阶段 5  Tailwind 4 + HeroUI v3 换血（复合组件 API / 语义色 / 护栏加 v2 遗留类规则）
 ⏳ 阶段 1  src/ 分层 + zustand 单一 store + 判别联合状态   ← 唯一没做的一段
 ⏳ 收尾    提交信息规范 + 架构文档
 ```
@@ -578,3 +658,4 @@ export interface SvgTemplate<P> {
 （`{kind:"image", …} | {kind:"color", …}`），改动面覆盖所有面板。
 本轮先把「地基」补齐（类型、护栏、测试、拆分、CI），
 状态模型的换血留到下一轮 —— 那时有了护栏和 e2e 兜底，改起来才敢。**
+阶段 5 之后护栏又多了一条（HeroUI v2 遗留色类），改状态模型时的兜底比上一轮更硬。

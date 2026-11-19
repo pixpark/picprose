@@ -15,32 +15,32 @@ import {routing} from '../../routing';
 const dingTalkFont = localFont({
   src: 'fonts/DingTalk JinBuTi.ttf',
   display: 'swap',
-  variable: '--font-dingtalk',
+  variable: '--pp-font-dingtalk',
 })
 
 const kingsoftFont = localFont({
   src: 'fonts/Kingsoft_Cloud_Font.ttf',
   display: 'swap',
-  variable: '--font-kingsoft',
+  variable: '--pp-font-kingsoft',
 })
 
 const xinYiGuanHeiFont = localFont({
   src: 'fonts/ZiTiQuanXinYiGuanHeiTi.ttf',
   display: 'swap',
-  variable: '--font-xinyiguanhei',
+  variable: '--pp-font-xinyiguanhei',
 })
 
 const alibabaFont = localFont({
   src: 'fonts/AlibabaPuHuiTi-3-55-Regular.ttf',
   display: 'swap',
-  variable: '--font-alibaba',
+  variable: '--pp-font-alibaba',
 })
  
 const openSans = Open_Sans({
   subsets: ['latin'],
   display: 'swap',
   //👇 Add variable to our object
-  variable: '--font-opensans',
+  variable: '--pp-font-opensans',
 })
  
 
@@ -48,14 +48,14 @@ const openSans = Open_Sans({
 const robotoMono = Roboto_Mono({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-roboto-mono',
+  variable: '--pp-font-mono',
 })
 
 //👇 Configure the object for our second font
 const ankeLatin = Anek_Latin({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-anke',
+  variable: '--pp-font-anke',
 })
  
 export const metadata: Metadata = {

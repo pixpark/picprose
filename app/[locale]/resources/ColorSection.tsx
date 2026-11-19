@@ -21,7 +21,7 @@ export const ColorSection = ({ onSelectColor, t }: ColorSectionProps) => (
       {SOLID_COLORS.map((color, index) => (
         <div
           key={index}
-          className="w-full aspect-square rounded-md cursor-pointer hover:scale-110 transition-transform border border-default-200"
+          className="w-full aspect-square rounded-md cursor-pointer hover:scale-110 transition-transform border border-border"
           style={{ backgroundColor: color }}
           onClick={() => onSelectColor(color)}
         />
@@ -33,7 +33,7 @@ export const ColorSection = ({ onSelectColor, t }: ColorSectionProps) => (
       {GRADIENT_COLORS.map((gradient, index) => (
         <div
           key={index}
-          className="w-full h-20 rounded-md cursor-pointer hover:scale-105 transition-transform border border-default-200"
+          className="w-full h-20 rounded-md cursor-pointer hover:scale-105 transition-transform border border-border"
           style={{ background: gradient }}
           onClick={() => onSelectColor(gradient)}
         />

@@ -53,12 +53,12 @@ const RangeControl = ({
   rightIcon,
 }: RangeControlProps) => (
   <div className="mb-5">
-    <div className="flex justify-between text-default-600 mb-2">
+    <div className="flex justify-between text-muted mb-2">
       <span>{label}</span>
       <span>{displayValue}</span>
     </div>
     <div className="flex items-center">
-      <div className="rounded-full w-10 h-10 bg-default-200 flex items-center justify-center mr-2">
+      <div className="rounded-full w-10 h-10 bg-surface-tertiary flex items-center justify-center mr-2">
         {leftIcon}
       </div>
       <input
@@ -68,9 +68,9 @@ const RangeControl = ({
         step={step}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 h-1 bg-default-300 rounded-lg appearance-none cursor-pointer mx-2"
+        className="flex-1 h-1 bg-default rounded-lg appearance-none cursor-pointer mx-2"
       />
-      <div className="rounded-full w-10 h-10 bg-default-200 flex items-center justify-center ml-2">
+      <div className="rounded-full w-10 h-10 bg-surface-tertiary flex items-center justify-center ml-2">
         {rightIcon}
       </div>
     </div>
@@ -127,18 +127,18 @@ export const SvgParamsSection = ({
     <div className="text-foreground">
       {/* 随机生成按钮 */}
       <Button
-        color="primary"
+        variant="primary"
         className="w-full mb-6"
-        onClick={() => randomizeHeazyWave()}
+        onPress={() => randomizeHeazyWave()}
       >
         {t("randomize_wave")}
       </Button>
 
       {/* 顶部切换按钮 - Solid/Outline */}
-      <div className="w-full mb-6 rounded-xl overflow-hidden bg-default-100">
+      <div className="w-full mb-6 rounded-xl overflow-hidden bg-surface-secondary">
         <div className="flex">
           <div
-            className={`w-1/2 flex items-center justify-center py-4 ${params?.style === 'solid' || !params?.style ? 'bg-default-200' : ''}`}
+            className={`w-1/2 flex items-center justify-center py-4 ${params?.style === 'solid' || !params?.style ? 'bg-surface-tertiary' : ''}`}
             onClick={() => handleSvgParamChange('style', 'solid')}
           >
             <svg className="w-5 h-5 mr-2 text-foreground" viewBox="0 0 24 24" fill="currentColor">
@@ -147,7 +147,7 @@ export const SvgParamsSection = ({
             <span className="text-foreground">{t("solid")}</span>
           </div>
           <div
-            className={`w-1/2 flex items-center justify-center py-4 ${params?.style === 'outline' ? 'bg-default-200' : ''}`}
+            className={`w-1/2 flex items-center justify-center py-4 ${params?.style === 'outline' ? 'bg-surface-tertiary' : ''}`}
             onClick={() => handleSvgParamChange('style', 'outline')}
           >
             <svg className="w-5 h-5 mr-2 text-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -172,12 +172,12 @@ export const SvgParamsSection = ({
           step={5}
           onChange={(raw) => handleSvgParamChange('amplitude', parseFloat(raw))}
           leftIcon={
-            <svg className="w-6 h-6 text-default-600" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24">
               <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
           rightIcon={
-            <svg className="w-6 h-6 text-default-600" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
@@ -193,12 +193,12 @@ export const SvgParamsSection = ({
           step={0.001}
           onChange={(raw) => handleSvgParamChange('frequency', parseFloat(raw))}
           leftIcon={
-            <svg className="w-6 h-6 text-default-600" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24">
               <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
           rightIcon={
-            <svg className="w-6 h-6 text-default-600" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
@@ -214,12 +214,12 @@ export const SvgParamsSection = ({
           step={0.05}
           onChange={(raw) => handleSvgParamChange('speed', parseFloat(raw))}
           leftIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M5 12h14" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
           rightIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
@@ -227,10 +227,10 @@ export const SvgParamsSection = ({
 
         {/* Direction 方向控制 */}
         <div className="mb-5">
-          <div className="text-default-600 mb-2">{t("direction")}</div>
+          <div className="text-muted mb-2">{t("direction")}</div>
           <div className="grid grid-cols-3 gap-2">
             <button
-              className={`p-3 flex items-center justify-center ${params?.direction === 'left' ? 'bg-primary-100 text-primary-600' : 'bg-default-100'} rounded-lg`}
+              className={`p-3 flex items-center justify-center ${params?.direction === 'left' ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary'} rounded-lg`}
               onClick={() => handleSvgParamChange('direction', 'left')}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -240,7 +240,7 @@ export const SvgParamsSection = ({
               <span className="ml-2">{t("left")}</span>
             </button>
             <button
-              className={`p-3 flex items-center justify-center ${params?.direction === 'right' || !params?.direction ? 'bg-primary-100 text-primary-600' : 'bg-default-100'} rounded-lg`}
+              className={`p-3 flex items-center justify-center ${params?.direction === 'right' || !params?.direction ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary'} rounded-lg`}
               onClick={() => handleSvgParamChange('direction', 'right')}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -250,7 +250,7 @@ export const SvgParamsSection = ({
               <span className="ml-2">{t("right")}</span>
             </button>
             <button
-              className={`p-3 flex items-center justify-center ${params?.direction === 'none' ? 'bg-primary-100 text-primary-600' : 'bg-default-100'} rounded-lg`}
+              className={`p-3 flex items-center justify-center ${params?.direction === 'none' ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary'} rounded-lg`}
               onClick={() => handleSvgParamChange('direction', 'none')}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -272,12 +272,12 @@ export const SvgParamsSection = ({
           step={15}
           onChange={(raw) => handleSvgParamChange('rotation', parseInt(raw))}
           leftIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M5 12h14" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
           rightIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
             </svg>
           }
@@ -285,7 +285,7 @@ export const SvgParamsSection = ({
 
         {/* Layers 控制 - 使用数字输入框 */}
         <div className="mb-5">
-          <div className="flex justify-between text-default-600 mb-2">
+          <div className="flex justify-between text-muted mb-2">
             <span>{t("layers")}</span>
             <span>{params?.layers || currentSvg.defaultParams.layers}</span>
           </div>
@@ -296,11 +296,11 @@ export const SvgParamsSection = ({
               max={8}
               value={params?.layers || currentSvg.defaultParams.layers}
               onChange={(e) => handleSvgParamChange('layers', parseInt(e.target.value))}
-              className="w-full bg-default-100 text-foreground py-3 px-4 rounded-lg appearance-none"
+              className="w-full bg-surface-secondary text-foreground py-3 px-4 rounded-lg appearance-none"
             />
             <div className="absolute right-0 top-0 bottom-0 flex flex-col pr-2">
               <button
-                className="flex-1 focus:outline-none text-default-500 hover:text-default-700"
+                className="flex-1 focus:outline-none text-muted hover:text-foreground"
                 onClick={() => {
                   const newValue = Math.min((params?.layers ?? currentSvg.defaultParams.layers ?? 3) + 1, 8);
                   handleSvgParamChange('layers', newValue);
@@ -311,7 +311,7 @@ export const SvgParamsSection = ({
                 </svg>
               </button>
               <button
-                className="flex-1 focus:outline-none text-default-500 hover:text-default-700"
+                className="flex-1 focus:outline-none text-muted hover:text-foreground"
                 onClick={() => {
                   const newValue = Math.max((params?.layers ?? currentSvg.defaultParams.layers ?? 3) - 1, 1);
                   handleSvgParamChange('layers', newValue);
@@ -335,13 +335,13 @@ export const SvgParamsSection = ({
           step={0.05}
           onChange={(raw) => handleSvgParamChange('wavesOpacity', parseFloat(raw))}
           leftIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" strokeOpacity="0.3" />
               <path d="M9 9h6v6H9z" fill="currentColor" fillOpacity="0.2" />
             </svg>
           }
           rightIcon={
-            <svg className="w-6 h-6 text-default-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg className="w-6 h-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
               <path d="M6 6h12v12H6z" fill="currentColor" />
             </svg>

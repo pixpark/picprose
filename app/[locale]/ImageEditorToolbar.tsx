@@ -50,20 +50,19 @@ export const ImageEditorToolbar = ({
           </div>
         )}
         
-        <div className="flex items-center rounded-lg bg-primary/10 backdrop-blur-sm px-3 py-2 shadow-pop">
+        <div className="flex items-center rounded-lg bg-accent/10 backdrop-blur-sm px-3 py-2 shadow-pop">
           <div className="flex items-center gap-4">
             {/* Drag mode toggle button - using pen/lock icon */}
             <div className="flex flex-col items-center">
               <Button 
-                color="primary"
-                variant="flat"
-                onClick={toggleEditMode}
-                title={isDragMode ? "Finish editing and lock" : "Enter edit mode"}
+                variant="secondary"
+                onPress={toggleEditMode}
+                aria-label={isDragMode ? "Finish editing and lock" : "Enter edit mode"}
                 isIconOnly={true}
                 size="sm"
               >
                 <svg 
-                  className="w-4 h-4 text-primary" 
+                  className="w-4 h-4" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24" 
@@ -91,17 +90,16 @@ export const ImageEditorToolbar = ({
             {/* Undo button - circular curved arrow style */}
             <div className="flex flex-col items-center">
               <Button 
-                color="primary"
-                variant="flat"
-                onClick={() => {
+                variant="secondary"
+                onPress={() => {
                   if (isDragMode) onUndo();
                 }}
                 isDisabled={!isDragMode || !canUndo}
-                title="Undo"
+                aria-label="Undo"
                 isIconOnly
                 size="sm"
               >
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -121,17 +119,16 @@ export const ImageEditorToolbar = ({
             {/* Redo button - circular curved arrow style */}
             <div className="flex flex-col items-center">
               <Button 
-                color="primary"
-                variant="flat"
-                onClick={() => {
+                variant="secondary"
+                onPress={() => {
                   if (isDragMode) onRedo();
                 }}
                 isDisabled={!isDragMode || !canRedo}
-                title="Redo"
+                aria-label="Redo"
                 isIconOnly
                 size="sm"
               >
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -151,15 +148,14 @@ export const ImageEditorToolbar = ({
             {/* Reset layout button */}
             <div className="flex flex-col items-center">
               <Button 
-                color="primary"
-                variant="flat"
-                onClick={handleResetLayout}
-                title="Restore default layout"
+                variant="secondary"
+                onPress={handleResetLayout}
+                aria-label="Restore default layout"
                 isIconOnly
                 size="sm"
               >
                 <svg
-                  className="w-4 h-4 text-primary"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

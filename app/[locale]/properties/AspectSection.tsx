@@ -23,20 +23,20 @@ export const AspectSection = ({ propertyInfo, onOpenDimensions }: AspectSectionP
 
   return (
     <div className="w-full py-2">
-      <p className="text-sm text-default-600 mb-1">{t("aspect")}</p>
+      <p className="text-sm text-muted mb-1">{t("aspect")}</p>
       <div
-        className="rounded-lg bg-default-100 p-4 flex justify-between items-center cursor-pointer border border-default-200"
+        className="rounded-lg bg-surface-secondary p-4 flex justify-between items-center cursor-pointer border border-border"
         onClick={onOpenDimensions}
       >
         <div>
           <div className="text-lg font-bold">
             {ratio}
           </div>
-          <div className="text-sm text-default-500">
+          <div className="text-sm text-muted">
             {dimensions}
           </div>
         </div>
-        <span className="text-xl text-default-500">›</span>
+        <span className="text-xl text-muted">›</span>
       </div>
     </div>
   );

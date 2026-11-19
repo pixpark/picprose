@@ -38,7 +38,8 @@ async function translationOf(locator: Locator): Promise<{ x: number; y: number }
 
 /** 进入拖拽模式（工具条上的第一个按钮）。 */
 async function enterDragMode(page: Page) {
-  await page.locator("button[title='Enter edit mode']").click();
+  // HeroUI v3 走 React Aria，title 会被属性过滤丢掉，只认 aria-label。
+  await page.locator("button[aria-label='Enter edit mode']").click();
 }
 
 test.describe("PicProse 主链", () => {

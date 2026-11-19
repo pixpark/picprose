@@ -1,17 +1,16 @@
 "use client";
 import {
   Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
   Input,
+  Label,
+  Popover,
   Slider,
+  TextField,
 } from "@heroui/react";
-import type { SliderValue } from "@heroui/react";
 import { Circle } from "@uiw/react-color";
 import type { ColorResult } from "@uiw/react-color";
 import { useTranslations } from "next-intl";
+import React from "react";
 import { hexAlphaToPercent, percentToHexAlpha } from "@/lib/alpha";
 import { MASK_COLORS } from "../data/colors";
 import type {
@@ -45,9 +44,12 @@ export const MaskSection = ({
   setImagePosition,
 }: MaskSectionProps) => {
   const t = useTranslations("RightPropertyPanel");
+  const [isPickerOpen, setIsPickerOpen] = React.useState(false);
 
   const handleColorChange = (color: ColorResult) => {
     updateProperty("color", color.hex.toUpperCase());
+    // 选完就收起浮层 —— v2 里点色块会顺带关掉下拉，v3 的 Popover 不会自动关。
+    setIsPickerOpen(false);
   };
 
   /**
@@ -57,7 +59,7 @@ export const MaskSection = ({
    * 所以这里必须存 hex 而不是十进制 —— 之前存十进制、读的时候按
    * hex 读，拖一次滑块界面显示和实际遮罩就全对不上了。
    */
-  const handleBlurTransChange = (value: SliderValue) => {
+  const handleBlurTransChange = (value: number | number[]) => {
     const percent = typeof value === "number" ? value : value[0];
     updateProperty("blurTrans", percentToHexAlpha(percent));
   };
@@ -73,60 +75,63 @@ export const MaskSection = ({
     <>
       <div className="flex w-full py-2">
         <div className="w-4/5">
-          <Input
-            type="url"
-            label={t("mask")}
-            value={propertyInfo.color}
-            placeholder={propertyInfo.color}
-            onChange={(e) => updateProperty("color", e.target.value)}
-          />
+          <TextField className="w-full">
+            <Label>{t("mask")}</Label>
+            <Input
+              type="url"
+              value={propertyInfo.color}
+              placeholder={propertyInfo.color}
+              onChange={(e) => updateProperty("color", e.target.value)}
+            />
+          </TextField>
         </div>
         <div className="flex-grow" />
         <div className="w-1/6 ml-2 mt-1">
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                isIconOnly
-                color="primary"
-                variant="bordered"
-                size="lg"
-                style={colorBackgroundStyle}
-              ></Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              aria-label="Single selection example"
-              variant="flat"
-              disallowEmptySelection
-              selectionMode="single"
-            >
-              <DropdownItem key="text">
-                <div className="m-2">
-                  <Circle
-                    colors={MASK_COLORS}
-                    onChange={(color: ColorResult) => handleColorChange(color)}
-                  />
-                </div>
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          {/* 取色器用 Popover，不用 Dropdown ——
+              菜单项里塞一个可交互的取色板本身就是误用（点色块会顺手把菜单点了）。 */}
+          <Popover
+            isOpen={isPickerOpen}
+            onOpenChange={setIsPickerOpen}
+          >
+            <Button
+              isIconOnly
+              variant="outline"
+              size="lg"
+              aria-label={t("mask")}
+              style={colorBackgroundStyle}
+            />
+            <Popover.Content>
+              <Popover.Dialog>
+                <Circle
+                  colors={MASK_COLORS}
+                  onChange={(color: ColorResult) => handleColorChange(color)}
+                />
+              </Popover.Dialog>
+            </Popover.Content>
+          </Popover>
         </div>
       </div>
       <Slider
-        label={t("transparence")}
         value={hexAlphaToPercent(propertyInfo.blurTrans)}
         onChange={handleBlurTransChange}
-        size="sm"
         step={5}
         className="w-full my-2"
-      />
+      >
+        <Label>{t("transparence")}</Label>
+        <Slider.Output />
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
 
       {/* 图片位置滑动条 - 仅在背景类型为图片时显示 */}
       {backgroundType === 'image' && (
         <Slider
-          label={t("image_position")}
           value={imagePosition}
-          onChange={(value) => setImagePosition(typeof value === "number" ? value : value[0])}
-          size="sm"
+          onChange={(value) =>
+            setImagePosition(typeof value === "number" ? value : value[0])
+          }
           step={10}
           minValue={-100}
           maxValue={100}
@@ -136,7 +141,14 @@ export const MaskSection = ({
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           }}
-        />
+        >
+          <Label>{t("image_position")}</Label>
+          <Slider.Output />
+          <Slider.Track>
+            <Slider.Fill />
+            <Slider.Thumb />
+          </Slider.Track>
+        </Slider>
       )}
     </>
   );

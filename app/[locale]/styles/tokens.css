@@ -18,18 +18,76 @@
  * 原则（照抄官网控制台 console.css）：
  * 「中性画布 + 发丝线 + 选中态用 chip，品牌绿只当强调色，不做大色块」。
  *
- * 两点跟 ops 不一样，说明一下：
- *  1. ops 用 Tailwind v4（@theme inline），这里用 v3 —— 所以 v3 侧的
- *     colors / borderRadius 映射写在 tailwind.config.ts，CSS 里只放变量。
- *  2. 组件库（NextUI → HeroUI）自己有一套语义类（bg-default-100 /
- *     text-foreground / border-default-200 …），那套跟着组件库的主题走；
- *     本文件负责的是「组件库管不到」的那层：页面骨架、面板底色、分割线。
- *     两套都要用，但别混着写：组件库语义类 → default-/foreground-，
+ * 两套颜色，各司其职：
+ *  1. 组件库语义类（bg-default / text-foreground / bg-surface / text-accent …）
+ *     —— HeroUI v3 自带，跟着组件库主题走。
+ *  2. 本文件的 --pp-* token —— 组件库管不到的那层：页面骨架、面板底色、分割线。
+ *     两套都要用，但别混着写：组件库语义类 → default-/foreground-/surface-/accent-，
  *     本文件的变量 → pp-*。
+ *
+ * Tailwind v4 的接线：变量到 class 的映射写在本文件顶部的 @theme inline。
+ * 必须是 inline —— 组件类直接用 var(--pp-xxx)，
+ * 这样 <html>.dark 翻转变量时颜色跟着翻；非 inline 会多一层 :root 上的
+ * --color-pp-xxx，深色下不会跟着翻。
  *
  * 深色模式：整套 token 翻转，组件里不写 dark: 变体。
  * <html> 上的 .dark 类由 app/[locale]/ThemeProvider.tsx 负责。
+ * HeroUI v3 的深色主题也是 .dark 触发，两套正好一起翻。
  */
+
+@theme inline {
+  /* ---------- 颜色 ---------- */
+  --color-pp-canvas: var(--pp-canvas);
+  --color-pp-surface: var(--pp-surface);
+  --color-pp-side: var(--pp-side);
+  --color-pp-soft: var(--pp-soft);
+  --color-pp-chip: var(--pp-chip);
+  --color-pp-line: var(--pp-line);
+  --color-pp-ink: var(--pp-ink);
+  --color-pp-muted: var(--pp-muted);
+  --color-pp-faint: var(--pp-faint);
+  --color-pp-accent: var(--pp-accent);
+  --color-pp-brand: var(--pp-brand);
+  --color-pp-brand-hover: var(--pp-brand-hover);
+  --color-pp-brand-soft: var(--pp-brand-soft);
+  --color-pp-brand-soft-fg: var(--pp-brand-soft-fg);
+  --color-pp-ok: var(--pp-ok);
+  --color-pp-ok-bg: var(--pp-ok-bg);
+  --color-pp-warn: var(--pp-warn);
+  --color-pp-warn-bg: var(--pp-warn-bg);
+  --color-pp-danger: var(--pp-danger);
+  --color-pp-danger-bg: var(--pp-danger-bg);
+  --color-pp-info: var(--pp-info);
+  --color-pp-info-bg: var(--pp-info-bg);
+
+  /* ---------- 圆角刻度 ----------
+     与官网 --home-radius-* 同档。
+     这几个变量同时覆盖了 HeroUI v3 自带的同名刻度（组件库默认 4/6/8/12/16/24px），
+     改成品牌这一档，保持和迁移前一致。 */
+  --radius-sm: var(--pp-radius-sm);
+  --radius-md: var(--pp-radius-md);
+  --radius-lg: var(--pp-radius-lg);
+  --radius-xl: var(--pp-radius-lg);
+  --radius-2xl: var(--pp-radius-lg);
+  --radius-3xl: var(--pp-radius-lg);
+
+  /* ---------- 阴影刻度 ----------
+     card 卡片悬浮 / pop 浮层（弹窗、下拉）/ ring 内描边 */
+  --shadow-card: var(--pp-shadow-card);
+  --shadow-pop: var(--pp-shadow-pop);
+  --shadow-ring: var(--pp-shadow-ring);
+
+  /* ---------- 字体 ----------
+     next/font 注入的变量统一叫 --pp-font-*，避免和这里的 --font-* 撞名
+     （@theme inline 虽然不会把变量吐到 :root，但同名自引用仍然晦涩）。 */
+  --font-sans: var(--pp-font-opensans);
+  --font-mono: var(--pp-font-mono);
+  --font-anke: var(--pp-font-anke);
+  --font-dingtalk: var(--pp-font-dingtalk);
+  --font-kingsoft: var(--pp-font-kingsoft);
+  --font-xinyiguanhei: var(--pp-font-xinyiguanhei);
+  --font-alibaba: var(--pp-font-alibaba);
+}
 
 :root {
   color-scheme: light;

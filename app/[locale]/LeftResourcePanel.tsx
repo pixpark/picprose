@@ -1,16 +1,11 @@
 "use client";
 import React from "react";
 import {
+  Avatar,
+  Button,
   Input,
   ScrollShadow,
-  Avatar,
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  Button,
   Tabs,
-  Tab,
 } from "@heroui/react";
 import { SearchIcon } from "./SearchIcon";
 import {useTranslations} from 'next-intl';
@@ -32,6 +27,9 @@ export { GalleryIcon, PaletteIcon, SvgIcon };
  * 左栏：图库 / 颜色 / 图案 三个 tab。
  *
  * 这里只做编排 —— 状态在 usePhotoFeed 里，画图在 resources/ 下各 Section 里。
+ *
+ * HeroUI v3 删掉了 Navbar —— 顶部品牌栏和底部搜索栏改用原生 header / footer，
+ * 布局和 v2 的 Navbar 一致。
  */
 export const LeftResourcePanel = () => {
   const t = useTranslations('LeftResourcePanel');
@@ -170,49 +168,48 @@ export const LeftResourcePanel = () => {
   return (
     <div className="w-full flex flex-col h-screen">
       <div className="w-full flex-none">
-        <Navbar
-          classNames={{
-            wrapper: "px-4",
-          }}
-        >
-          <NavbarBrand>
+        <header className="w-full px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <PicproseLogo />
-            <p className="font-bold text-inherit">PicProse</p>
-          </NavbarBrand>
-          <NavbarContent justify="end">
-            <NavbarItem>
-              <Avatar
-                isBordered
-                src="https://i.pravatar.cc/150?u=a04258114e29026302d"
-              />
-            </NavbarItem>
-          </NavbarContent>
-        </Navbar>
+            <p className="font-bold">PicProse</p>
+          </div>
+          <Avatar className="ring-1 ring-border" size="sm">
+            <Avatar.Image src="https://i.pravatar.cc/150?u=a04258114e29026302d" />
+            <Avatar.Fallback>P</Avatar.Fallback>
+          </Avatar>
+        </header>
       </div>
 
       <div className="px-2 pt-2 flex-grow flex flex-col">
         <Tabs
+          className="flex flex-col flex-grow"
           selectedKey={activeTab}
-          onSelectionChange={(key) => handleTabChange(key as string)}
-          color="default"
-          variant="solid"
-          fullWidth
-          classNames={{
-            base: "flex flex-col flex-grow",
-            panel: "flex-grow overflow-hidden",
-            tabList: "mb-0",
-            tab: "py-2 px-2"
-          }}
+          onSelectionChange={(key) => handleTabChange(String(key))}
         >
-          <Tab
-            key="images"
-            title={
-              <div className="flex items-center gap-2">
-                <GalleryIcon className="w-5 h-5" />
-                <span className="text-sm">{t('images_tab')}</span>
-              </div>
-            }
-          >
+          <Tabs.ListContainer className="mb-0">
+            <Tabs.List>
+              <Tabs.Tab id="images" className="py-2 px-2">
+                <div className="flex items-center gap-2">
+                  <GalleryIcon className="w-5 h-5" />
+                  <span className="text-sm">{t('images_tab')}</span>
+                </div>
+              </Tabs.Tab>
+              <Tabs.Tab id="colors" className="py-2 px-2">
+                <div className="flex items-center gap-2">
+                  <PaletteIcon className="w-5 h-5" />
+                  <span className="text-sm">{t('colors_tab')}</span>
+                </div>
+              </Tabs.Tab>
+              <Tabs.Tab id="patterns" className="py-2 px-2">
+                <div className="flex items-center gap-2">
+                  <SvgIcon className="w-5 h-5" />
+                  <span className="text-sm">{t('patterns_tab')}</span>
+                </div>
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+
+          <Tabs.Panel id="images" className="flex-grow overflow-hidden p-0">
             <PhotoGallery
               photos={feed.photos}
               loading={feed.loading}
@@ -224,33 +221,17 @@ export const LeftResourcePanel = () => {
               onSelectPhoto={feed.selectPhoto}
               t={t}
             />
-          </Tab>
-          <Tab
-            key="colors"
-            title={
-              <div className="flex items-center gap-2">
-                <PaletteIcon className="w-5 h-5" />
-                <span className="text-sm">{t('colors_tab')}</span>
-              </div>
-            }
-          >
+          </Tabs.Panel>
+          <Tabs.Panel id="colors" className="flex-grow overflow-hidden p-0">
             <div className="flex-grow" style={{ height: windowHeight - 220 }}>
-              <ScrollShadow className="h-full overflow-y-auto">
+              <ScrollShadow className="h-full overflow-y-auto" variant="fade">
                 <ColorSection onSelectColor={handleSelectColor} t={t} />
               </ScrollShadow>
             </div>
-          </Tab>
-          <Tab
-            key="patterns"
-            title={
-              <div className="flex items-center gap-2">
-                <SvgIcon className="w-5 h-5" />
-                <span className="text-sm">{t('patterns_tab')}</span>
-              </div>
-            }
-          >
+          </Tabs.Panel>
+          <Tabs.Panel id="patterns" className="flex-grow overflow-hidden p-0">
             <div className="flex-grow" style={{ height: windowHeight - 220 }}>
-              <ScrollShadow className="h-full overflow-y-auto">
+              <ScrollShadow className="h-full overflow-y-auto" variant="fade">
                 <SvgSection
                   selectedSvgIndex={selectedSvgIndex}
                   onSelectTemplate={handleSelectSvgTemplate}
@@ -258,16 +239,12 @@ export const LeftResourcePanel = () => {
                 />
               </ScrollShadow>
             </div>
-          </Tab>
+          </Tabs.Panel>
         </Tabs>
       </div>
 
       <div className="w-full flex-none mt-auto">
-        <Navbar
-          classNames={{
-            wrapper: "px-4",
-          }}
-        >
+        <footer className="w-full px-4 flex items-center gap-2">
           <input
             type="file"
             className="hidden"
@@ -275,13 +252,12 @@ export const LeftResourcePanel = () => {
             ref={fileInputRef}
           />
           <Button
-            variant="flat"
-            color="primary"
+            variant="secondary"
             isIconOnly
-            onClick={handleButtonClick}
+            onPress={handleButtonClick}
           >
             <svg
-              className="w-5 h-5 text-pp-accent pointer-events-none flex-shrink-0"
+              className="w-5 h-5 pointer-events-none flex-shrink-0"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -298,29 +274,26 @@ export const LeftResourcePanel = () => {
               />
             </svg>
           </Button>
-          <Input
-            type="search"
-            placeholder={t('input_search')}
-            value={feed.query}
-            onValueChange={feed.setQuery}
-            onKeyDown={(e) => handleSearchKeyDown(e)}
+          <div className="flex-1">
+            <Input
+              className="w-full"
+              type="search"
+              placeholder={t('input_search')}
+              value={feed.query}
+              onChange={(e) => feed.setQuery(e.target.value)}
+              onKeyDown={(e) => handleSearchKeyDown(e)}
+              disabled={activeTab !== "images"}
+            />
+          </div>
+          <Button
+            isIconOnly
+            variant="secondary"
+            onPress={() => feed.search()}
             isDisabled={activeTab !== "images"}
-          />
-
-          <NavbarContent justify="end">
-            <NavbarItem>
-              <Button
-                isIconOnly
-                variant="flat"
-                color="primary"
-                onClick={() => feed.search()}
-                isDisabled={activeTab !== "images"}
-              >
-                <SearchIcon className="text-pp-accent mb-0.5 pointer-events-none flex-shrink-0" />
-              </Button>
-            </NavbarItem>
-          </NavbarContent>
-        </Navbar>
+          >
+            <SearchIcon className="mb-0.5 pointer-events-none flex-shrink-0" />
+          </Button>
+        </footer>
       </div>
     </div>
   );

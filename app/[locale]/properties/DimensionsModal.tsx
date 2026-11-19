@@ -1,5 +1,5 @@
 "use client";
-import { CheckboxIcon, Divider, Input } from "@heroui/react";
+import { Input, Label, Separator, TextField } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import {
   deviceAspectOptions,
@@ -26,22 +26,41 @@ interface AspectOptionRowProps {
   onSelect: (option: AspectOption) => void;
 }
 
+/**
+ * 选中标记。
+ *
+ * HeroUI v3 没有 v2 的 CheckboxIcon 导出，这里直接画一个对勾 ——
+ * 纯装饰（真正的语义在整行的 aria 与视觉选中态上），不值得为一个图标引一整个 Checkbox。
+ */
+const CheckMarkIcon = () => (
+  <svg
+    className="w-5 h-5 text-accent"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
 const AspectOptionRow = ({ option, label, selected, onSelect }: AspectOptionRowProps) => (
   <div
     onClick={() => onSelect(option)}
     className={`p-3 rounded-md flex justify-between items-center cursor-pointer ${
       selected
-        ? "bg-primary-100 border border-primary-500"
-        : "bg-default-100"
+        ? "bg-accent-soft border border-accent"
+        : "bg-surface-secondary"
     }`}
   >
     <div>
       <div className="font-medium">{label}</div>
-      <div className="text-sm text-default-600">{option.description}</div>
+      <div className="text-sm text-muted">{option.description}</div>
     </div>
-    {selected && (
-      <CheckboxIcon className="w-5 h-5 text-primary-500" />
-    )}
+    {selected && <CheckMarkIcon />}
   </div>
 );
 
@@ -71,44 +90,44 @@ export const DimensionsModal = ({ propertyInfo, updateProperty }: DimensionsModa
   return (
     <div className="flex-grow overflow-y-auto overflow-x-hidden flex flex-col px-4">
       <div className="grid grid-cols-1 gap-2 py-2">
-        <p className="text-sm font-medium text-default-600">{t("custom_resolution")}</p>
-        <div className="p-3 rounded-md bg-default-100">
+        <p className="text-sm font-medium text-muted">{t("custom_resolution")}</p>
+        <div className="p-3 rounded-md bg-surface-secondary">
           <div className="flex gap-2 items-center">
-            <Input
-              type="number"
-              min="1"
-              label={t("width")}
-              size="sm"
-              value={String(propertyInfo.customWidth || 1185)}
-              onChange={(e) => {
-                const width = parseInt(e.target.value) || 1185;
-                updateProperty("customWidth", width);
-                updateProperty("isCustomAspect", true);
-                updateProperty("aspect", `aspect-[${width}/${propertyInfo.customHeight || 1185}]`);
-              }}
-              className="flex-1"
-            />
+            <TextField className="flex-1">
+              <Label>{t("width")}</Label>
+              <Input
+                type="number"
+                min="1"
+                value={String(propertyInfo.customWidth || 1185)}
+                onChange={(e) => {
+                  const width = parseInt(e.target.value) || 1185;
+                  updateProperty("customWidth", width);
+                  updateProperty("isCustomAspect", true);
+                  updateProperty("aspect", `aspect-[${width}/${propertyInfo.customHeight || 1185}]`);
+                }}
+              />
+            </TextField>
             <span className="mx-2">×</span>
-            <Input
-              type="number"
-              min="1"
-              label={t("height")}
-              size="sm"
-              value={String(propertyInfo.customHeight || 1185)}
-              onChange={(e) => {
-                const height = parseInt(e.target.value) || 1185;
-                updateProperty("customHeight", height);
-                updateProperty("isCustomAspect", true);
-                updateProperty("aspect", `aspect-[${propertyInfo.customWidth || 1185}/${height}]`);
-              }}
-              className="flex-1"
-            />
+            <TextField className="flex-1">
+              <Label>{t("height")}</Label>
+              <Input
+                type="number"
+                min="1"
+                value={String(propertyInfo.customHeight || 1185)}
+                onChange={(e) => {
+                  const height = parseInt(e.target.value) || 1185;
+                  updateProperty("customHeight", height);
+                  updateProperty("isCustomAspect", true);
+                  updateProperty("aspect", `aspect-[${propertyInfo.customWidth || 1185}/${height}]`);
+                }}
+              />
+            </TextField>
           </div>
         </div>
 
-        <Divider className="my-2" />
+        <Separator className="my-2" />
 
-        <p className="text-sm font-medium text-default-600">{t("landscape")}</p>
+        <p className="text-sm font-medium text-muted">{t("landscape")}</p>
         {horizontalAspectOptions.map((option) => (
           <AspectOptionRow
             key={option.value}
@@ -119,7 +138,7 @@ export const DimensionsModal = ({ propertyInfo, updateProperty }: DimensionsModa
           />
         ))}
 
-        <p className="text-sm font-medium text-default-600 mt-2">{t("portrait")}</p>
+        <p className="text-sm font-medium text-muted mt-2">{t("portrait")}</p>
         {verticalAspectOptions.map((option) => (
           <AspectOptionRow
             key={option.value}
@@ -131,7 +150,7 @@ export const DimensionsModal = ({ propertyInfo, updateProperty }: DimensionsModa
         ))}
 
         {/* 添加社交平台选项 */}
-        <p className="text-sm font-medium text-default-600 mt-2">{t("social_media")}</p>
+        <p className="text-sm font-medium text-muted mt-2">{t("social_media")}</p>
         {socialMediaAspectOptions.map((option) => (
           <AspectOptionRow
             key={option.value}
@@ -143,7 +162,7 @@ export const DimensionsModal = ({ propertyInfo, updateProperty }: DimensionsModa
         ))}
 
         {/* 添加设备选项 */}
-        <p className="text-sm font-medium text-default-600 mt-2">{t("devices")}</p>
+        <p className="text-sm font-medium text-muted mt-2">{t("devices")}</p>
         {deviceAspectOptions.map((option) => (
           <AspectOptionRow
             key={option.value}

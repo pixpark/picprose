@@ -52,7 +52,7 @@ export default function Home() {
 
         {/* Middle content area - adaptive fill remaining space */}
         <div className="flex-grow flex flex-col bg-pp-canvas h-screen max-h-screen overflow-hidden relative">
-          <div className="flex-1 flex justify-center items-center bg-default-100">
+          <div className="flex-1 flex justify-center items-center bg-surface-secondary">
             <ComponentToImg ref={componentToImgRef}>
               <ImageEditor
                 isDragMode={isDragMode}

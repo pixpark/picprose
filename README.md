@@ -88,7 +88,7 @@ You can start by creating your own PicProse site and deploying to Vercel by clic
 
 - **Framework**: [Next.js](https://nextjs.org/) 15 (App Router)
 - **Types**: [TypeScript](https://www.typescriptlang.org/) (strict)
-- **UI**: [HeroUI](https://heroui.com/) v2 + [Tailwind CSS](https://tailwindcss.com/) v3
+- **UI**: [HeroUI](https://heroui.com/) v3 + [Tailwind CSS](https://tailwindcss.com/) v4
 - **Design tokens**: `app/[locale]/styles/tokens.css` + `npm run check:ui` guardrail
 - **Images**: [Unsplash API](https://unsplash.com/developers)
 - **i18n**: [next-intl](https://next-intl-docs.vercel.app/)

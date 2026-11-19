@@ -1,6 +1,6 @@
 # PicProse
 
-封面图生成器。Next.js 15 (App Router) · React 19 · Tailwind 3 · HeroUI v2 · next-intl。
+封面图生成器。Next.js 15 (App Router) · React 19 · Tailwind 4 · HeroUI v3 · next-intl。
 
 架构与重构路线见 [`doc/refactor-plan.md`](doc/refactor-plan.md)。
 
@@ -39,10 +39,14 @@ npm run test:e2e   # Playwright 浏览器回归（会自己 build + 起服务）
 界面颜色只走两条路：
 
 - `--pp-*` token（`app/[locale]/styles/tokens.css`）→ 类名 `bg-pp-canvas` / `text-pp-ink` / `border-pp-line`
-- 组件库语义类 → `bg-default-100` / `text-foreground` / `border-default-200`
+- 组件库语义类 → `bg-surface-secondary` / `text-foreground` / `border-border`
+  （HeroUI v3 的语义色是扁平的：`default` / `surface` / `overlay` / `accent` / `muted`，
+  **没有** v2 那种 `default-100` / `primary-500` 的数字档）
 
-**不许**出现裸 hex（`#1F2937`）、Tailwind 调色板色类（`bg-gray-100`）、`dark:` 变体。
-`npm run check:ui` 会拦这三样，例外只有 `app/[locale]/data/`（内容色板）、
+**不许**出现裸 hex（`#1F2937`）、Tailwind 调色板色类（`bg-gray-100`）、`dark:` 变体、
+HeroUI v2 遗留色类（`bg-default-100` / `bg-primary-100` —— v3 里这些类已经不存在，
+写上去不报错也不生效，等于静默失效）。
+`npm run check:ui` 会拦这四样，例外只有 `app/[locale]/data/`（内容色板）、
 `app/[locale]/svgBackgrounds/`（SVG 模板）、`config/` 和 devicon 品牌资产。
 
 深色模式靠 `<html>` 上的 `.dark` 类翻转整套 token（见 `ThemeProvider.tsx`），
@@ -50,14 +54,31 @@ npm run test:e2e   # Playwright 浏览器回归（会自己 build + 起服务）
 
 圆角 / 阴影 / 图标尺寸用刻度内的值，不要写 `rounded-[13px]`、`shadow-lg` 这种刻度外的。
 
-### 组件库升级
+### Tailwind v4 + HeroUI v3
 
-`@nextui-org/react` 已改名 `@heroui/react`（NextUI 停止维护）。
-升级时注意两处：
+现在是 **Tailwind 4 + HeroUI v3**，两者的接线方式都变了，写代码前先记住这几条：
 
-- HeroUI v3 要 Tailwind 4，本项目还在 Tailwind v3，所以用 **HeroUI v2**（2.8.x）。
-- HeroUI v2 的 Tailwind 插件类型是按 Tailwind v4 写的，运行时用的还是 v3 的 API，
-  `tailwind.config.ts` 里有一处 `as unknown as PluginCreator` 的类型放行 —— 别当成可以随便删的脏代码。
+- **没有 `tailwind.config.ts` 了**。配置写进 CSS：`app/[locale]/globals.css` 负责
+  `@import` 顺序和 `@custom-variant`，`app/[locale]/styles/tokens.css` 顶部的
+  `@theme inline` 负责 token → 工具类的映射。
+- **`@theme` 必须用 `inline`**。非 inline 会多一层 `:root` 上的 `--color-pp-*`，
+  深色模式下不会跟着 `<html>.dark` 翻。
+- **HeroUI v3 不需要 Provider**（`HeroUIProvider` 已删），**也不再需要 framer-motion**。
+- **组件是复合结构**：`Select.Trigger` / `Select.Value` / `Select.Popover` + `ListBox.Item`、
+  `Slider.Track` / `Slider.Fill` / `Slider.Thumb`、`Tabs.List` / `Tabs.Tab` / `Tabs.Panel`。
+  v2 的 `SelectItem` / `Tab title=` / `Slider label=` 都没有了。
+- **选项用 `id` 不用 `key`**：`ListBox.Item id="..."`。
+- **事件用 `onPress` 不用 `onClick`**（React Aria）。`onClick` 在类型上就过不去。
+- **`title` 属性会被 React Aria 丢掉**（`filterDOMProps` 不放行），
+  图标按钮一律用 `aria-label`。
+- **Navbar / NavbarBrand / NavbarContent / NavbarItem 已删** —— 用原生 `header` / `footer` 顶上。
+- **Divider → Separator**；**CheckboxIcon 没了**，画个 SVG 对勾。
+- **取色器不要塞进 Dropdown 的菜单项**（点色块会顺手把菜单点了），用 `Popover`。
+- 按钮语义变体：v2 的 `color="primary" variant="flat"` → v3 的 `variant="secondary"`；
+  `variant="bordered"` → `variant="outline"`；`variant="light"` → `variant="ghost"`；
+  真正的主操作（导出按钮）用 `variant="primary"`。
+- 图标颜色交给按钮自己的前景色 token（`--button-fg`），别再硬写 `text-accent` —— 组件库
+  换主题时才不会脱节。
 
 ### 数值转换走统一函数
 
@@ -81,7 +102,7 @@ app/[locale]/          路由段：页面、面板、画布、Context
   canvas/              画布：背景 / 参考线 / 可拖元素 / 拖拽 hook
   svgBackgrounds/      SVG 背景模板（一模板一文件，index.ts 登记）
   icons/               线性图标
-  styles/tokens.css    设计 token（颜色 / 圆角 / 尺寸 / 字号）
+  styles/tokens.css    设计 token（颜色 / 圆角 / 尺寸 / 字号）+ @theme inline 映射
   data/                内容预设（色板等，不是界面配色）
 app/api/unsplash/      Unsplash 代理（服务端，密钥不外泄）
 lib/                   纯函数工具 + 运行时数据加载

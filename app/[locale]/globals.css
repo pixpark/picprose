@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * 全局样式入口。
+ *
+ * 导入顺序不能改：
+ *  1. tailwindcss   —— v4 的入口，提供 @theme / @utility / @variant 这些 at-rule 的解析
+ *  2. @heroui/styles —— 组件库样式。必须在 tailwindcss 之后，
+ *                       它自己会再 import 一次 tailwindcss（Tailwind 对同一份 import 去重）
+ *  3. ./styles/tokens.css —— 本项目的设计 token。放在最后，
+ *                       它的 @theme inline 映射要盖过组件库同名的圆角 / 阴影刻度
+ *
+ * 深色模式：走 <html>.dark（ThemeProvider 手动翻转），不走 prefers-color-scheme。
+ * Tailwind v4 的 dark: 变体默认跟着系统走，这里改成跟着 .dark 类走，
+ * 两套才不会打架 —— 不过组件里本来就不该写 dark: 变体，护栏也会拦。
+ */
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "./styles/tokens.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 .font-custom {
   font-family: var(--font-custom), sans-serif;

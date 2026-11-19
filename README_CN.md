@@ -96,8 +96,8 @@ docker run -d --name picprose -e UNSPLASH_API_KEY=xxx -p 3000:3000 picprose
 
 - **前端框架**: [Next.js](https://nextjs.org/)
 - **类型系统**: [TypeScript](https://www.typescriptlang.org/)
-- **UI组件**: [HeroUI](https://heroui.com/)
-- **样式**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI组件**: [HeroUI](https://heroui.com/) v3（React Aria）
+- **样式**: [Tailwind CSS](https://tailwindcss.com/) v4
 - **图片源**: [Unsplash API](https://unsplash.com/developers)
 - **国际化**: [next-intl](https://next-intl-docs.vercel.app/)
 - **字体**: [Google Fonts](https://fonts.google.com/) 和本地字体

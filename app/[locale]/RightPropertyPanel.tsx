@@ -1,14 +1,6 @@
 "use client";
 import React from "react";
-import {
-  Button,
-  Divider,
-  Link,
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-} from "@heroui/react";
+import { Button, Link, Separator } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { usePicprose } from "./PicproseContext";
 import { AspectSection } from "./properties/AspectSection";
@@ -50,6 +42,9 @@ const ChevronLeftIcon = () => (
  *   TextSection       标题 / 字号 / 宽度 / 作者
  *   SvgParamsSection  SVG 图案参数
  *   DownloadSection   导出格式
+ *
+ * HeroUI v3 删掉了 Navbar —— 这里用原生 header 顶上，
+ * 布局和 v2 的 Navbar 一致（左右两栏 + px-4）。
  */
 export const RightPropertyPanel = () => {
   const t = useTranslations("RightPropertyPanel");
@@ -80,34 +75,17 @@ export const RightPropertyPanel = () => {
         }`}
       >
         <div className="w-full">
-          <Navbar
-            classNames={{
-              wrapper: "px-4",
-            }}
-          >
-            <NavbarBrand>
-              <p className="text-default-600 font-bold text-inherit">
-                {t("property")}
-              </p>
-            </NavbarBrand>
-
-            <NavbarContent justify="end">
-              <NavbarItem>
-                <Button
-                  as={Link}
-                  color="primary"
-                  variant="flat"
-                  target="_blank"
-                  href="https://github.com/pixpark/picprose"
-                >
-                  <i
-                    className={`devicon-github-plain text-primary dev-icon text-xl`}
-                  />
-                  GitHub
-                </Button>
-              </NavbarItem>
-            </NavbarContent>
-          </Navbar>
+          <header className="w-full px-4 flex items-center justify-between">
+            <p className="text-muted font-bold">{t("property")}</p>
+            <Link
+              className="text-accent hover:bg-accent/10 px-2 py-1 rounded-md"
+              target="_blank"
+              href="https://github.com/pixpark/picprose"
+            >
+              <i className="devicon-github-plain text-accent dev-icon text-xl" />
+              GitHub
+            </Link>
+          </header>
         </div>
 
         <div className="flex-grow overflow-y-auto overflow-x-hidden flex flex-col px-4">
@@ -116,7 +94,7 @@ export const RightPropertyPanel = () => {
             onOpenDimensions={() => setShowDimensionsModal(true)}
           />
 
-          <Divider className="my-2" />
+          <Separator className="my-2" />
 
           <MaskSection
             propertyInfo={propertyInfo}
@@ -126,11 +104,11 @@ export const RightPropertyPanel = () => {
             setImagePosition={setImagePosition}
           />
 
-          <Divider />
+          <Separator />
 
           <IconSection updateProperty={updateProperty} />
 
-          <Divider />
+          <Separator />
 
           <FontSection updateProperty={updateProperty} />
 
@@ -140,7 +118,7 @@ export const RightPropertyPanel = () => {
           />
         </div>
 
-        <Divider />
+        <Separator />
         <DownloadSection downloadImage={downloadImage} />
       </div>
 
@@ -151,23 +129,21 @@ export const RightPropertyPanel = () => {
         }`}
       >
         <div className="w-full">
-          <Navbar classNames={{ wrapper: "px-4" }}>
-            <NavbarBrand>
-              <Button
-                isIconOnly
-                variant="light"
-                onPress={() => setShowDimensionsModal(false)}
-                className="mr-2"
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <p className="text-default-600 font-bold text-inherit">
-                {t("select_dimensions")}
-              </p>
-            </NavbarBrand>
+          <header className="w-full px-4 flex items-center">
+            <Button
+              isIconOnly
+              variant="ghost"
+              onPress={() => setShowDimensionsModal(false)}
+              className="mr-2"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <p className="text-muted font-bold">
+              {t("select_dimensions")}
+            </p>
 
             {/* 确认按钮已移除 */}
-          </Navbar>
+          </header>
         </div>
 
         <DimensionsModal
@@ -183,25 +159,19 @@ export const RightPropertyPanel = () => {
         }`}
       >
         <div className="w-full">
-          <Navbar
-            classNames={{
-              wrapper: "px-4",
-            }}
-          >
-            <NavbarBrand className="flex-1">
-              <Button
-                size="sm"
-                variant="flat"
-                onClick={() => setShowSvgPanel(false)}
-                className="mr-2"
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <p className="text-default-600 font-bold text-inherit">
-                {t("customize_svg")}
-              </p>
-            </NavbarBrand>
-          </Navbar>
+          <header className="w-full px-4 flex items-center">
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={() => setShowSvgPanel(false)}
+              className="mr-2"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <p className="text-muted font-bold">
+              {t("customize_svg")}
+            </p>
+          </header>
         </div>
 
         <div className="flex-grow overflow-y-auto px-4">
